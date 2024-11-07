@@ -9,7 +9,6 @@ const emailRegex = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-
 const telRegex = /^[0-9]{10,13}$/;
 const addressRegex = /^[A-Za-z0-9À-ÖØ-öø-ÿ\s\-']{1,255}$/;
 const zipRegex = /^[0-9]{5}$/;
-const passwordRegex = /^[A-Za-z0-9!@#$%^&*(),;.?":{}|<>]{10,255}$/;
 
 /**
  * @swagger
@@ -107,7 +106,54 @@ router.get('/', (req, res) => {
  *                   example: 'Utilisateur/trice créé/e'
  */
 router.post('/create', async (req, res) => {
+    if(req.body.role!=='admin'){
+        console.error('Rôle invalide.');
+        req.body.role = 'user';
+    }
     const {role, firstname, lastname, email, password, telephone, address, zipcode} = req.body;
+    if(!firstname.match(wordRegex)){
+        console.error('Prénom invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Prénom invalide.' });
+    }
+    if(!lastname.match(wordRegex)){
+        console.error('Nom invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
+    }
+    if(!email.match(emailRegex)){
+        console.error('E-mail invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'E-mail invalide.' });
+    }
+    if(!telephone.match(telRegex)){
+        return res.status(400).json({ error: 'Erreur requête', details: 'Téléphone invalide.' });
+    }
+    if(!address.match(addressRegex)){
+        console.error('Adresse invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Adresse invalide.' });
+    }
+    if(!zipcode.match(zipRegex)){
+        console.error('Code postal invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Code postal invalide.' });
+    }
+    if(!password.match(/.{10,255}/)){
+        console.error('Mot de passe trop court.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Mot de passe trop court.' });    
+    }
+    if(!password.match(/[a-z]/)){
+        console.error('Aucune minuscule dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucune minuscule dans le mot de passe.' });    
+    }
+    if(!password.match(/[A-Z]/)){
+        console.error('Aucune majuscule dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucune majuscule dans le mot de passe.' });    
+    }
+    if(!password.match(/[0-9]/)){
+        console.error('Aucun numéro dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucun numéro dans le mot de passe.' });    
+    }
+    if(!password.match(/[!@#$%^&*(),;.?":{}|<>]/)){
+        console.error('Aucun caractère spécial dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucun caractère spécial dans le mot de passe.' });    
+    }
     bcrypt.hash(password, 10).then((hashedPassword) => {
         const sql = 'INSERT INTO users (role, firstname, lastname, email, password, telephone, address, zipcode) VALUES (?,?,?,?,?,?,?,?)';
         db.query(sql, [role, firstname, lastname, email, hashedPassword, telephone, address, zipcode], (err, results) => {
@@ -236,52 +282,53 @@ router.post('/login', async (req, res) => {
  *                   example: 'Utilisateur/trice modifié/e'
  */
 router.put('/update/:id', async (req, res) => {
+    if(req.body.role!=='admin'){
+        console.error('Rôle invalide.');
+        req.body.role = 'user';
+    }
     const {role, firstname, lastname, email, password, telephone, address, zipcode} = req.body;
     if(!firstname.match(wordRegex)){
         console.error('Prénom invalide.');
-        return res.status(400).json({ error: 'Erreur requête', details: 'Prénom invalide.' });    
+        return res.status(400).json({ error: 'Erreur requête', details: 'Prénom invalide.' });
     }
     if(!lastname.match(wordRegex)){
         console.error('Nom invalide.');
-        return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });    
+        return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
     if(!email.match(emailRegex)){
         console.error('E-mail invalide.');
-        return res.status(400).json({ error: 'Erreur requête', details: 'E-mail invalide.' });    
+        return res.status(400).json({ error: 'Erreur requête', details: 'E-mail invalide.' });
     }
     if(!telephone.match(telRegex)){
-        return res.status(400).json({ error: 'Erreur requête', details: 'Téléphone invalide.' });    
+        return res.status(400).json({ error: 'Erreur requête', details: 'Téléphone invalide.' });
     }
     if(!address.match(addressRegex)){
         console.error('Adresse invalide.');
-        return res.status(400).json({ error: 'Erreur requête', details: 'Adresse invalide.' });    
+        return res.status(400).json({ error: 'Erreur requête', details: 'Adresse invalide.' });
     }
     if(!zipcode.match(zipRegex)){
         console.error('Code postal invalide.');
-        return res.status(400).json({ error: 'Erreur requête', details: 'Code postal invalide.' });    
+        return res.status(400).json({ error: 'Erreur requête', details: 'Code postal invalide.' });
     }
-    if(!password.match(passwordRegex)){
-        console.error('Mot de passe invalide.');
-        if(!password.match(/.{10,255}/)){
-            console.error('Mot de passe trop court.');
-            return res.status(400).json({ error: 'Erreur requête', details: 'Mot de passe trop court.' });    
-        }
-        if(!password.match(/[a-z]/)){
-            console.error('Aucune minuscule dans le mot de passe.');
-            return res.status(400).json({ error: 'Erreur requête', details: 'Aucune minuscule dans le mot de passe.' });    
-        }
-        if(!password.match(/[A-Z]/)){
-            console.error('Aucune majuscule dans le mot de passe.');
-            return res.status(400).json({ error: 'Erreur requête', details: 'Aucune majuscule dans le mot de passe.' });    
-        }
-        if(!password.match(/[0-9]/)){
-            console.error('Aucun numéro dans le mot de passe.');
-            return res.status(400).json({ error: 'Erreur requête', details: 'Aucun numéro dans le mot de passe.' });    
-        }
-        if(!password.match(/[!@#$%^&*(),;.?":{}|<>]/)){
-            console.error('Aucun caractère spécial dans le mot de passe.');
-            return res.status(400).json({ error: 'Erreur requête', details: 'Aucun caractère spécial dans le mot de passe.' });    
-        }
+    if(!password.match(/.{10,255}/)){
+        console.error('Mot de passe trop court.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Mot de passe trop court.' });    
+    }
+    if(!password.match(/[a-z]/)){
+        console.error('Aucune minuscule dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucune minuscule dans le mot de passe.' });    
+    }
+    if(!password.match(/[A-Z]/)){
+        console.error('Aucune majuscule dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucune majuscule dans le mot de passe.' });    
+    }
+    if(!password.match(/[0-9]/)){
+        console.error('Aucun numéro dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucun numéro dans le mot de passe.' });    
+    }
+    if(!password.match(/[!@#$%^&*(),;.?":{}|<>]/)){
+        console.error('Aucun caractère spécial dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucun caractère spécial dans le mot de passe.' });    
     }
     const id = req.params.id;
     const hashedPassword = await bcrypt.hash(password, 10);
