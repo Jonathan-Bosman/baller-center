@@ -14,10 +14,12 @@ const zipRegex = /^[0-9]{5}$/;
  * @swagger
  * /users:
  *   get:
- *     summary: Récupérer tous les utilisateurs
+ *     summary: Récupère tous les utilisateurs (accès réservé aux administrateurs)
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Liste des utilisateurs
+ *         description: Liste de tous les utilisateurs
  *         content:
  *           application/json:
  *             schema:
@@ -30,31 +32,36 @@ const zipRegex = /^[0-9]{5}$/;
  *                     example: 25
  *                   role:
  *                     type: string
- *                     example: 'user'
+ *                     example: "user"
  *                   firstname:
  *                     type: string
- *                     example: 'Alice'
+ *                     example: "Alice"
  *                   lastname:
  *                     type: string
- *                     example: 'Bidule'
+ *                     example: "Bidule"
  *                   email:
  *                     type: string
- *                     example: 'bidulalice@gmail.com'
+ *                     example: "bidulalice@gmail.com"
  *                   password:
  *                     type: string
- *                     example: '12345!aBcDe'
+ *                     example: "hashedpassword"
  *                   telephone:
  *                     type: string
- *                     example: '0033600000000'
+ *                     example: "0033600000000"
  *                   address:
  *                     type: string
- *                     example: '1312 rue de Bidule bis'
+ *                     example: "1312 rue de Bidule bis"
  *                   zipcode:
  *                     type: string
- *                     example: '10000'
+ *                     example: "10000"
  *                   created_at:
- *                     type: date
- *                     example: '2020'
+ *                     type: string
+ *                     format: date
+ *                     example: "2020-01-01"
+ *       401:
+ *         description: Non autorisé - Utilisateur non administrateur
+ *       500:
+ *         description: Erreur serveur
  */
 router.get('/', authorizationJWT, (req, res) => {
     if(req.user.role!=="admin"){
@@ -73,42 +80,36 @@ router.get('/', authorizationJWT, (req, res) => {
  * @swagger
  * /users/profile:
  *   get:
- *     summary: Récupérer l'utilisateur/trice correspondant à l'url
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID de l'utilisateur/trice
+ *     summary: Récupère les détails du profil de l'utilisateur connecté
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Détails d'un/e utilisateur/trice
+ *         description: Détails de l'utilisateur connecté
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     example: 25
- *                   firstname:
- *                     type: string
- *                     example: 'aaa'
- *                   lastname:
- *                     type: string
- *                     example: 'aaa'
- *                   email:
- *                     type: string
- *                     example: 'aaa'
- *                   pass:
- *                     type: string
- *                     example: 'aaa'
- *                   role:
- *                     type: string
- *                     example: 'user'
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 25
+ *                 firstname:
+ *                   type: string
+ *                   example: "Alice"
+ *                 lastname:
+ *                   type: string
+ *                   example: "Bidule"
+ *                 email:
+ *                   type: string
+ *                   example: "bidulalice@gmail.com"
+ *                 role:
+ *                   type: string
+ *                   example: "user"
+ *       401:
+ *         description: Non autorisé - Jeton invalide ou utilisateur non connecté
+ *       500:
+ *         description: Erreur serveur
  */
 router.get('/profile', authorizationJWT, (req, res) => {
     const { id } = req.user;
@@ -125,42 +126,45 @@ router.get('/profile', authorizationJWT, (req, res) => {
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Récupérer l'utilisateur/trice correspondant à l'url
+ *     summary: Récupère un utilisateur spécifique par ID (accès réservé aux administrateurs)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: integer
- *         required: true
- *         description: ID de l'utilisateur/trice
+ *         description: ID de l'utilisateur à récupérer
  *     responses:
  *       200:
- *         description: Détails d'un/e utilisateur/trice
+ *         description: Détails de l'utilisateur spécifié
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     example: 25
- *                   firstname:
- *                     type: string
- *                     example: 'aaa'
- *                   lastname:
- *                     type: string
- *                     example: 'aaa'
- *                   email:
- *                     type: string
- *                     example: 'aaa'
- *                   pass:
- *                     type: string
- *                     example: 'aaa'
- *                   role:
- *                     type: string
- *                     example: 'user'
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 25
+ *                 firstname:
+ *                   type: string
+ *                   example: "Alice"
+ *                 lastname:
+ *                   type: string
+ *                   example: "Bidule"
+ *                 email:
+ *                   type: string
+ *                   example: "bidulalice@gmail.com"
+ *                 role:
+ *                   type: string
+ *                   example: "user"
+ *       401:
+ *         description: Non autorisé - Utilisateur non administrateur
+ *       404:
+ *         description: Utilisateur non trouvé
+ *       500:
+ *         description: Erreur serveur
  */
 router.get('/:id', authorizationJWT, (req, res) => {
     if(req.user.role!=="admin"){
@@ -566,27 +570,43 @@ router.put('/update/:id', authorizationJWT, async (req, res) => {
  * @swagger
  * /users/profile/delete:
  *   delete:
- *     summary: Éffacer l'utilisateur/trice correspondant à l'url
+ *     summary: Supprimer l'utilisateur/trice correspondant à l'ID de l'utilisateur connecté
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
+ *       - in: header
+ *         name: Authorization
  *         required: true
- *         description: ID de l'utilisateur/trice
+ *         description: Token d'authentification JWT pour identifier l'utilisateur connecté
  *     responses:
  *       200:
- *         description: Éffacement d'un/e utilisateur/trice
+ *         description: Utilisateur/trice supprimé(e) avec succès
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   message:
- *                     type: string
- *                     example: 'Utilisateur/trice éffacé/e'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Utilisateur/trice supprimé(e) avec succès'
+ *       401:
+ *         description: Non autorisé - L'utilisateur n'a pas le droit de supprimer son propre compte
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Non autorisé'
+ *       500:
+ *         description: Erreur interne du serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Erreur serveur'
  */
 router.delete('/profile/delete', authorizationJWT, async (req, res) => {
     const { id } = req.user;
@@ -600,33 +620,53 @@ router.delete('/profile/delete', authorizationJWT, async (req, res) => {
     });
 });
 
-
-
 /**
  * @swagger
  * /users/delete/{id}:
  *   delete:
- *     summary: Éffacer l'utilisateur/trice correspondant à l'url
+ *     summary: Supprimer un utilisateur/trice spécifique par son ID
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID de l'utilisateur/trice
+ *         description: ID de l'utilisateur/trice à supprimer
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: Token d'authentification JWT pour vérifier les droits administratifs
  *     responses:
  *       200:
- *         description: Éffacement d'un/e utilisateur/trice
+ *         description: Utilisateur/trice supprimé(e) avec succès
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   message:
- *                     type: string
- *                     example: 'Utilisateur/trice éffacé/e'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Utilisateur/trice supprimé(e) avec succès'
+ *       401:
+ *         description: Non autorisé - L'utilisateur connecté n'a pas les droits d'administrateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Non autorisé'
+ *       500:
+ *         description: Erreur interne du serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: 'Erreur serveur'
  */
 router.delete('/delete/:id', authorizationJWT, async (req, res) => {
     if(req.user.role!=="admin"){
