@@ -33,32 +33,142 @@ const zipRegex = /^[0-9]{5}$/;
  *                     example: 'user'
  *                   firstname:
  *                     type: string
- *                     example: 'Aïcha'
+ *                     example: 'Alice'
+ *                   lastname:
+ *                     type: string
+ *                     example: 'Bidule'
+ *                   email:
+ *                     type: string
+ *                     example: 'bidulalice@gmail.com'
+ *                   password:
+ *                     type: string
+ *                     example: '12345!aBcDe'
+ *                   telephone:
+ *                     type: string
+ *                     example: '0033600000000'
+ *                   address:
+ *                     type: string
+ *                     example: '1312 rue de Bidule bis'
+ *                   zipcode:
+ *                     type: string
+ *                     example: '10000'
+ *                   created_at:
+ *                     type: date
+ *                     example: '2020'
+ */
+router.get('/', authorizationJWT, (req, res) => {
+    if(req.user.role!=="admin"){
+        return res.status(401).json({ error: 'Forbidden.' });
+    }
+    const sql = 'SELECT * FROM users';
+    db.query(sql, (err, results) => {
+        if(err){
+            return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        return res.status(200).json(results);
+    });
+});
+
+/**
+ * @swagger
+ * /users/profile:
+ *   get:
+ *     summary: Récupérer l'utilisateur/trice correspondant à l'url
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de l'utilisateur/trice
+ *     responses:
+ *       200:
+ *         description: Détails d'un/e utilisateur/trice
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 25
+ *                   firstname:
+ *                     type: string
+ *                     example: 'aaa'
  *                   lastname:
  *                     type: string
  *                     example: 'aaa'
  *                   email:
  *                     type: string
  *                     example: 'aaa'
- *                   password:
+ *                   pass:
  *                     type: string
  *                     example: 'aaa'
- *                   telephone:
+ *                   role:
  *                     type: string
- *                     example: '0033600000000'
- *                   address:
- *                     type: string
- *                     example: '0033600000000'
- *                   zipcode:
- *                     type: string
- *                     example: '10000'
- *                   created_at:
- *                     type: string
- *                     example: '2020'
+ *                     example: 'user'
  */
-router.get('/', (req, res) => {
-    const sql = 'SELECT * FROM users';
-    db.query(sql, (err, results) => {
+router.get('/profile', authorizationJWT, (req, res) => {
+    const { id } = req.user;
+    const sql = 'SELECT * FROM users WHERE id = ?';
+    db.query(sql, [id], (err, results) => {
+        if(err){
+            return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        return res.status(200).json(results);
+    });
+});
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Récupérer l'utilisateur/trice correspondant à l'url
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de l'utilisateur/trice
+ *     responses:
+ *       200:
+ *         description: Détails d'un/e utilisateur/trice
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 25
+ *                   firstname:
+ *                     type: string
+ *                     example: 'aaa'
+ *                   lastname:
+ *                     type: string
+ *                     example: 'aaa'
+ *                   email:
+ *                     type: string
+ *                     example: 'aaa'
+ *                   pass:
+ *                     type: string
+ *                     example: 'aaa'
+ *                   role:
+ *                     type: string
+ *                     example: 'user'
+ */
+router.get('/:id', authorizationJWT, (req, res) => {
+    if(req.user.role!=="admin"){
+        return res.status(401).json({ error: 'Forbidden.' });
+    }
+    const { id } = req.params;
+    const sql = 'SELECT * FROM users WHERE id = ?';
+    db.query(sql, [id], (err, results) => {
         if(err){
             return res.status(500).json({ error: 'Erreur serveur', details: err });
         }
@@ -111,46 +221,46 @@ router.post('/create', async (req, res) => {
         req.body.role = 'user';
     }
     const {role, firstname, lastname, email, password, telephone, address, zipcode} = req.body;
-    if(!firstname.match(wordRegex)){
+    if(!firstname || !firstname.match(wordRegex)){
         console.error('Prénom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Prénom invalide.' });
     }
-    if(!lastname.match(wordRegex)){
+    if(!lastname || !lastname.match(wordRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!email.match(emailRegex)){
+    if(!email || !email.match(emailRegex)){
         console.error('E-mail invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'E-mail invalide.' });
     }
-    if(!telephone.match(telRegex)){
+    if(!telephone || !telephone.match(telRegex)){
         return res.status(400).json({ error: 'Erreur requête', details: 'Téléphone invalide.' });
     }
-    if(!address.match(addressRegex)){
+    if(!address || !address.match(addressRegex)){
         console.error('Adresse invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Adresse invalide.' });
     }
-    if(!zipcode.match(zipRegex)){
+    if(!zipcode || !zipcode.match(zipRegex)){
         console.error('Code postal invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Code postal invalide.' });
     }
-    if(!password.match(/.{10,255}/)){
+    if(!password || !password.match(/.{10,255}/)){
         console.error('Mot de passe trop court.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Mot de passe trop court.' });    
     }
-    if(!password.match(/[a-z]/)){
+    if(!password || !password.match(/[a-z]/)){
         console.error('Aucune minuscule dans le mot de passe.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Aucune minuscule dans le mot de passe.' });    
     }
-    if(!password.match(/[A-Z]/)){
+    if(!password || !password.match(/[A-Z]/)){
         console.error('Aucune majuscule dans le mot de passe.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Aucune majuscule dans le mot de passe.' });    
     }
-    if(!password.match(/[0-9]/)){
+    if(!password || !password.match(/[0-9]/)){
         console.error('Aucun numéro dans le mot de passe.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Aucun numéro dans le mot de passe.' });    
     }
-    if(!password.match(/[!@#$%^&*(),;.?":{}|<>]/)){
+    if(!password || !password.match(/[!@#$%^&*(),;.?":{}|<>]/)){
         console.error('Aucun caractère spécial dans le mot de passe.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Aucun caractère spécial dans le mot de passe.' });    
     }
@@ -209,29 +319,136 @@ router.post('/create', async (req, res) => {
  *                   example: 'very.long.gibberish'
  */
 router.post('/login', async (req, res) => {
-    const {email, pass} = req.body;
+    const {email, password} = req.body;
     const sql = 'SELECT * FROM users WHERE email = ?';
+    if(!email){
+        return res.status(401).json({ error: 'E-mail ou mot de passe incorrect.' });
+    }
     db.query(sql, [email], async (err, results) => {
         if(err){
             console.error('Erreur de requête à la base de donnée.');
             return res.status(500).json({ error: 'Erreur serveur', details: err });
         }
         if(results.length<1){
-            console.log('Aucun utilisateur avec l\'e-mail ', email, '.');
             return res.status(401).json({ error: 'E-mail ou mot de passe incorrect.' });
         }
-
+        
         const user = results[0];
-        const isMatch = await bcrypt.compare(pass, user.pass);
-
-        if(!isMatch){
-            console.log('Le mot de passe ne correspond pas pour l\'utilisateur');
+        if(user.password && password){
+            const isMatch = await bcrypt.compare(password, user.password);
+            if(!isMatch){
+                return res.status(401).json({ error: 'E-mail ou mot de passe incorrect.' });
+            }
+        } else {
             return res.status(401).json({ error: 'E-mail ou mot de passe incorrect.' });
         }
 
         const {id, firstname, lastname} = user;
         const token = jwt.sign({ id : user.id, role : user.role}, process.env.PRIVATE_KEY, {expiresIn: '1d' });
         return res.status(200).json({ message: "Connecté/e", id: id, firstname: firstname, lastname: lastname, token: token });
+    });
+});
+
+/**
+ * @swagger
+ * /users/profile/update:
+ *   put:
+ *     summary: Modifier un utilisateur/trice
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de l'utilisateur/trice
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstname:
+ *                 type: string
+ *                 example: 'aaa'
+ *               lastname:
+ *                 type: string
+ *                 example: 'aaa'
+ *               email:
+ *                 type: string
+ *                 example: 'aaa@example.com'
+ *               pass:
+ *                 type: string
+ *                 example: 'hashed-word-salad'
+ *               role:
+ *                 type: string
+ *                 example: 'user'
+ *     responses:
+ *       200:
+ *         description: Utilisateur/trice modifié/e avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Utilisateur/trice modifié/e'
+ */
+router.put('/profile/update', authorizationJWT, async (req, res) => {
+    const {firstname, lastname, email, password, telephone, address, zipcode} = req.body;
+    if(!firstname || !firstname.match(wordRegex)){
+        console.error('Prénom invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Prénom invalide.' });
+    }
+    if(!lastname || !lastname.match(wordRegex)){
+        console.error('Nom invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
+    }
+    if(!email || !email.match(emailRegex)){
+        console.error('E-mail invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'E-mail invalide.' });
+    }
+    if(!telephone || !telephone.match(telRegex)){
+        return res.status(400).json({ error: 'Erreur requête', details: 'Téléphone invalide.' });
+    }
+    if(!address || !address.match(addressRegex)){
+        console.error('Adresse invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Adresse invalide.' });
+    }
+    if(!zipcode || !zipcode.match(zipRegex)){
+        console.error('Code postal invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Code postal invalide.' });
+    }
+    if(!password || !password.match(/.{10,255}/)){
+        console.error('Mot de passe trop court.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Mot de passe trop court.' });    
+    }
+    if(!password || !password.match(/[a-z]/)){
+        console.error('Aucune minuscule dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucune minuscule dans le mot de passe.' });    
+    }
+    if(!password || !password.match(/[A-Z]/)){
+        console.error('Aucune majuscule dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucune majuscule dans le mot de passe.' });    
+    }
+    if(!password || !password.match(/[0-9]/)){
+        console.error('Aucun numéro dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucun numéro dans le mot de passe.' });    
+    }
+    if(!password || !password.match(/[!@#$%^&*(),;.?":{}|<>]/)){
+        console.error('Aucun caractère spécial dans le mot de passe.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Aucun caractère spécial dans le mot de passe.' });    
+    }
+    const id = req.user.id;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const sql = 'UPDATE users SET firstname = ?, lastname = ?, email = ?, password = ?, telephone = ?, address = ?, zipcode = ?, created_at = NOW() WHERE id = ?'
+    db.query(sql, [firstname, lastname, email, hashedPassword, telephone, address, zipcode, id], (err, results) => {
+        if(err){
+            console.error('Erreur de requête à la base de donnée.');
+            return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        return res.status(200).send({ message: 'Utilisateur/trice modifié/e avec succès', name: firstname });
     });
 });
 
@@ -281,52 +498,55 @@ router.post('/login', async (req, res) => {
  *                   type: string
  *                   example: 'Utilisateur/trice modifié/e'
  */
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', authorizationJWT, async (req, res) => {
+    if(req.user.role!=="admin"){
+        return res.status(401).json({ error: 'Forbidden.' });
+    }
     if(req.body.role!=='admin'){
         console.error('Rôle invalide.');
         req.body.role = 'user';
     }
     const {role, firstname, lastname, email, password, telephone, address, zipcode} = req.body;
-    if(!firstname.match(wordRegex)){
+    if(!firstname || !firstname.match(wordRegex)){
         console.error('Prénom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Prénom invalide.' });
     }
-    if(!lastname.match(wordRegex)){
+    if(!lastname || !lastname.match(wordRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!email.match(emailRegex)){
+    if(!email || !email.match(emailRegex)){
         console.error('E-mail invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'E-mail invalide.' });
     }
-    if(!telephone.match(telRegex)){
+    if(!telephone || !telephone.match(telRegex)){
         return res.status(400).json({ error: 'Erreur requête', details: 'Téléphone invalide.' });
     }
-    if(!address.match(addressRegex)){
+    if(!address || !address.match(addressRegex)){
         console.error('Adresse invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Adresse invalide.' });
     }
-    if(!zipcode.match(zipRegex)){
+    if(!zipcode || !zipcode.match(zipRegex)){
         console.error('Code postal invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Code postal invalide.' });
     }
-    if(!password.match(/.{10,255}/)){
+    if(!password || !password.match(/.{10,255}/)){
         console.error('Mot de passe trop court.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Mot de passe trop court.' });    
     }
-    if(!password.match(/[a-z]/)){
+    if(!password || !password.match(/[a-z]/)){
         console.error('Aucune minuscule dans le mot de passe.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Aucune minuscule dans le mot de passe.' });    
     }
-    if(!password.match(/[A-Z]/)){
+    if(!password || !password.match(/[A-Z]/)){
         console.error('Aucune majuscule dans le mot de passe.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Aucune majuscule dans le mot de passe.' });    
     }
-    if(!password.match(/[0-9]/)){
+    if(!password || !password.match(/[0-9]/)){
         console.error('Aucun numéro dans le mot de passe.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Aucun numéro dans le mot de passe.' });    
     }
-    if(!password.match(/[!@#$%^&*(),;.?":{}|<>]/)){
+    if(!password || !password.match(/[!@#$%^&*(),;.?":{}|<>]/)){
         console.error('Aucun caractère spécial dans le mot de passe.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Aucun caractère spécial dans le mot de passe.' });    
     }
@@ -341,6 +561,46 @@ router.put('/update/:id', async (req, res) => {
         return res.status(200).send({ message: 'Utilisateur/trice modifié/e avec succès', name: firstname });
     });
 });
+
+/**
+ * @swagger
+ * /users/profile/delete:
+ *   delete:
+ *     summary: Éffacer l'utilisateur/trice correspondant à l'url
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID de l'utilisateur/trice
+ *     responses:
+ *       200:
+ *         description: Éffacement d'un/e utilisateur/trice
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   message:
+ *                     type: string
+ *                     example: 'Utilisateur/trice éffacé/e'
+ */
+router.delete('/profile/delete', authorizationJWT, async (req, res) => {
+    const { id } = req.user;
+    const sql = 'DELETE FROM users WHERE id = ?'
+    db.query(sql, [id], (err, results) => {
+        if(err){
+            console.error('Erreur de requête à la base de donnée.');
+            return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        return res.status(200).json({ message: 'Utilisateur/trice éffacé/e avec succès' });
+    });
+});
+
+
 
 /**
  * @swagger
@@ -368,7 +628,10 @@ router.put('/update/:id', async (req, res) => {
  *                     type: string
  *                     example: 'Utilisateur/trice éffacé/e'
  */
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id', authorizationJWT, async (req, res) => {
+    if(req.user.role!=="admin"){
+        return res.status(401).json({ error: 'Forbidden.' });
+    }
     const { id } = req.params.id;
     const sql = 'DELETE FROM users WHERE id = ?'
     db.query(sql, [id], (err, results) => {
@@ -380,56 +643,5 @@ router.delete('/delete/:id', async (req, res) => {
     });
 });
 
-/**
- * @swagger
- * /users/{id}:
- *   get:
- *     summary: Récupérer l'utilisateur/trice correspondant à l'url
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID de l'utilisateur/trice
- *     responses:
- *       200:
- *         description: Détails d'un/e utilisateur/trice
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     example: 25
- *                   firstname:
- *                     type: string
- *                     example: 'aaa'
- *                   lastname:
- *                     type: string
- *                     example: 'aaa'
- *                   email:
- *                     type: string
- *                     example: 'aaa'
- *                   pass:
- *                     type: string
- *                     example: 'aaa'
- *                   role:
- *                     type: string
- *                     example: 'user'
- */
-router.get('/:id', authorizationJWT, (req, res) => {
-    const { id } = req.params;
-    const sql = 'SELECT * FROM users WHERE id = ?';
-    db.query(sql, [id], (err, results) => {
-        if(err){
-            return res.status(500).json({ error: 'Erreur serveur', details: err });
-        }
-        return res.status(200).json(results);
-    });
-});
 
 module.exports = router;
