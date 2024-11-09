@@ -3,6 +3,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./modules/database.js');
 const usersRoutes = require('./routes/users.js');
+const categoriesRoutes = require('./routes/categories.js');
+const teamsRoutes = require('./routes/teams.js');
+const brandsRoutes = require('./routes/brands.js');
 const cors = require('cors');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
@@ -31,6 +34,9 @@ app.use('/api-doc', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(bodyParser.json());
 app.use('/api/users', usersRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/teams', teamsRoutes);
+app.use('/api/brands', brandsRoutes);
 
 db.connect((err) => {
     if (err) {console.log(err);}

@@ -15,6 +15,8 @@ const zipRegex = /^[0-9]{5}$/;
  * /users:
  *   get:
  *     summary: Récupère tous les utilisateurs (accès réservé aux administrateurs)
+ *     tags:
+ *       - Users
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -78,9 +80,79 @@ router.get('/', authorizationJWT, (req, res) => {
 
 /**
  * @swagger
+ * /users/latest:
+ *   get:
+ *     summary: Récupère les cinq derniers utilisateurs (accès réservé aux administrateurs)
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des cinq derniers utilisateurs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 25
+ *                   role:
+ *                     type: string
+ *                     example: "user"
+ *                   firstname:
+ *                     type: string
+ *                     example: "Alice"
+ *                   lastname:
+ *                     type: string
+ *                     example: "Bidule"
+ *                   email:
+ *                     type: string
+ *                     example: "bidulalice@gmail.com"
+ *                   password:
+ *                     type: string
+ *                     example: "hashedpassword"
+ *                   telephone:
+ *                     type: string
+ *                     example: "0033600000000"
+ *                   address:
+ *                     type: string
+ *                     example: "1312 rue de Bidule bis"
+ *                   zipcode:
+ *                     type: string
+ *                     example: "10000"
+ *                   created_at:
+ *                     type: string
+ *                     format: date
+ *                     example: "2020-01-01"
+ *       401:
+ *         description: Non autorisé - Utilisateur non administrateur
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/latest', authorizationJWT, (req, res) => {
+    if(req.user.role!=="admin"){
+        return res.status(401).json({ error: 'Forbidden.' });
+    }
+    const sql = 'SELECT * FROM users ORDER BY created_at DESC LIMIT 5';
+    db.query(sql, (err, results) => {
+        if(err){
+            return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        return res.status(200).json(results);
+    });
+});
+
+/**
+ * @swagger
  * /users/profile:
  *   get:
  *     summary: Récupère les détails du profil de l'utilisateur connecté
+ *     tags:
+ *       - Users
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -127,6 +199,8 @@ router.get('/profile', authorizationJWT, (req, res) => {
  * /users/{id}:
  *   get:
  *     summary: Récupère un utilisateur spécifique par ID (accès réservé aux administrateurs)
+ *     tags:
+ *       - Users
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -185,6 +259,8 @@ router.get('/:id', authorizationJWT, (req, res) => {
  * /users/create:
  *   post:
  *     summary: Créer un/e nouvel/le utilisateur/trice
+ *     tags:
+ *       - Users
  *     requestBody:
  *       required: true
  *       content:
@@ -288,6 +364,8 @@ router.post('/create', async (req, res) => {
  * /users/login:
  *   post:
  *     summary: Se connecter
+ *     tags:
+ *       - Users
  *     requestBody:
  *       required: true
  *       content:
@@ -321,14 +399,19 @@ router.post('/create', async (req, res) => {
  *                 token:
  *                   type: string
  *                   example: 'very.long.gibberish'
+ *       401:
+ *         description: Échec de la connexion - E-mail ou mot de passe incorrect
+ *       500:
+ *         description: Erreur serveur
  */
 router.post('/login', async (req, res) => {
     const {email, password} = req.body;
-    const sql = 'SELECT * FROM users WHERE email = ?';
+    const sql1 = 'SELECT * FROM users WHERE email = ?';
+    const sql2 = 'UPDATE users SET created_at = NOW() WHERE email = ?';
     if(!email){
         return res.status(401).json({ error: 'E-mail ou mot de passe incorrect.' });
     }
-    db.query(sql, [email], async (err, results) => {
+    db.query(sql1, [email], async (err, results) => {
         if(err){
             console.error('Erreur de requête à la base de donnée.');
             return res.status(500).json({ error: 'Erreur serveur', details: err });
@@ -346,7 +429,12 @@ router.post('/login', async (req, res) => {
         } else {
             return res.status(401).json({ error: 'E-mail ou mot de passe incorrect.' });
         }
-
+        db.query(sql2, [email], async (err, results) => {
+            if(err){
+                console.error('Erreur de requête à la base de donnée.');
+                return res.status(500).json({ error: 'Erreur serveur', details: err });
+            }
+        });
         const {id, firstname, lastname} = user;
         const token = jwt.sign({ id : user.id, role : user.role}, process.env.PRIVATE_KEY, {expiresIn: '1d' });
         return res.status(200).json({ message: "Connecté/e", id: id, firstname: firstname, lastname: lastname, token: token });
@@ -358,6 +446,8 @@ router.post('/login', async (req, res) => {
  * /users/profile/update:
  *   put:
  *     summary: Modifier un utilisateur/trice
+ *     tags:
+ *       - Users
  *     parameters:
  *       - in: path
  *         name: id
@@ -461,6 +551,8 @@ router.put('/profile/update', authorizationJWT, async (req, res) => {
  * /users/update/{id}:
  *   put:
  *     summary: Modifier un utilisateur/trice
+ *     tags:
+ *       - Users
  *     parameters:
  *       - in: path
  *         name: id
@@ -571,6 +663,8 @@ router.put('/update/:id', authorizationJWT, async (req, res) => {
  * /users/profile/delete:
  *   delete:
  *     summary: Supprimer l'utilisateur/trice correspondant à l'ID de l'utilisateur connecté
+ *     tags:
+ *       - Users
  *     parameters:
  *       - in: header
  *         name: Authorization
@@ -616,7 +710,7 @@ router.delete('/profile/delete', authorizationJWT, async (req, res) => {
             console.error('Erreur de requête à la base de donnée.');
             return res.status(500).json({ error: 'Erreur serveur', details: err });
         }
-        return res.status(200).json({ message: 'Utilisateur/trice éffacé/e avec succès' });
+        return res.status(200).json({ message: 'Utilisateur/trice effacé/e avec succès' });
     });
 });
 
@@ -625,6 +719,8 @@ router.delete('/profile/delete', authorizationJWT, async (req, res) => {
  * /users/delete/{id}:
  *   delete:
  *     summary: Supprimer un utilisateur/trice spécifique par son ID
+ *     tags:
+ *       - Users
  *     parameters:
  *       - in: path
  *         name: id
@@ -679,7 +775,7 @@ router.delete('/delete/:id', authorizationJWT, async (req, res) => {
             console.error('Erreur de requête à la base de donnée.');
             return res.status(500).json({ error: 'Erreur serveur', details: err });
         }
-        return res.status(200).json({ message: 'Utilisateur/trice éffacé/e avec succès' });
+        return res.status(200).json({ message: 'Utilisateur/trice effacé/e avec succès' });
     });
 });
 
