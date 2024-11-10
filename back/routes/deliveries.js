@@ -79,6 +79,129 @@ router.get('/', (req, res) => {
 
 /**
  * @swagger
+ * /deliveries/today:
+ *   get:
+ *     summary: Récupérer le total des ventes pour aujourd'hui (admin uniquement)
+ *     tags: [Livraisons]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Total des ventes pour aujourd'hui
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_today:
+ *                   type: number
+ *                   description: Total des ventes pour aujourd'hui
+ *       401:
+ *         description: Accès non autorisé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/today', authorizationJWT, (req, res) => {
+    if(req.user.role!=="admin"){
+        return res.status(401).json({ error: 'Forbidden.' });
+    }
+    const date = new Date();
+    const dateString = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
+    const sql = 'SELECT SUM(total_price) FROM deliveries WHERE created_at > ?';
+    db.query(sql, [dateString], (err, results) => {
+        if(err){
+            return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        return res.status(200).json(results);
+    });
+});
+
+/**
+ * @swagger
+ * /deliveries/yesterday:
+ *   get:
+ *     summary: Récupérer le total des ventes pour hier (admin uniquement)
+ *     tags: [Livraisons]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Total des ventes pour hier
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_yesterday:
+ *                   type: number
+ *                   description: Total des ventes pour hier
+ *       401:
+ *         description: Accès non autorisé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/yesterday', authorizationJWT, (req, res) => {
+    if(req.user.role!=="admin"){
+        return res.status(401).json({ error: 'Forbidden.' });
+    }
+    const dateToday = new Date();
+    const yesterday = Date.now() + -1*24*3600*1000;
+    const dateYeseterday = new Date(yesterday);
+    const todayString = `${dateToday.getFullYear()}-${dateToday.getMonth()+1}-${dateToday.getDate()}`;
+    const yesterdayString = `${dateYeseterday.getFullYear()}-${dateYeseterday.getMonth()+1}-${dateYeseterday.getDate()}`;
+    const sql = 'SELECT SUM(total_price) FROM deliveries WHERE created_at BETWEEN ? AND ?';
+    db.query(sql, [yesterdayString, todayString], (err, results) => {
+        if(err){
+            return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        return res.status(200).json(results);
+    });
+});
+
+/**
+ * @swagger
+ * /deliveries/lastmonth:
+ *   get:
+ *     summary: Récupérer le total des ventes pour le mois dernier (admin uniquement)
+ *     tags: [Livraisons]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Total des ventes pour le mois dernier
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total_last_month:
+ *                   type: number
+ *                   description: Total des ventes pour le mois dernier
+ *       401:
+ *         description: Accès non autorisé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/lastmonth', authorizationJWT, (req, res) => {
+    if(req.user.role!=="admin"){
+        return res.status(401).json({ error: 'Forbidden.' });
+    }
+    const dateToday = new Date();
+    let lastMonth = new Date(dateToday);
+    lastMonth.setMonth(dateToday.getMonth()-1);
+    const todayString = `${dateToday.getFullYear()}-${dateToday.getMonth()+1}-01`;
+    const lastMonthString = `${lastMonth.getFullYear()}-${lastMonth.getMonth()+1}-01`;
+    const sql = 'SELECT SUM(total_price) FROM deliveries WHERE created_at BETWEEN ? AND ?';
+    db.query(sql, [lastMonthString, todayString], (err, results) => {
+        if(err){
+            return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        return res.status(200).json(results);
+    });
+});
+
+/**
+ * @swagger
  * /deliveries/profile:
  *   get:
  *     summary: Récupère les livraisons de l'utilisateur authentifié
