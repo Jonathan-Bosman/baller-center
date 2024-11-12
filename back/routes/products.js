@@ -214,11 +214,11 @@ router.post('/create', authorizationJWT, upload.single('image'), async (req, res
         return res.status(401).json({ error: 'Forbidden.' });
     }
     const { name, description, category, team, variation, brand, creation_year, size, price, quantity } = req.body;
-    if(!name || !name.match(wordRegex)){
+    if(!name || typeof(name)!=='string' || !name.match(wordRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!description || !description.match(wordRegex)){
+    if(!description || typeof(description)!=='string' || !description.match(wordRegex)){
         console.error('Description invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Description invalide.' });
     }
@@ -230,7 +230,7 @@ router.post('/create', authorizationJWT, upload.single('image'), async (req, res
         console.error('Equipe invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Equipe invalide.' });
     }
-    if(!(variation==='Domicile' || variation==='Extérieur' || variation==='Alternative')){
+    if(!(variation==='Domicile' || variation==='Extérieur' || variation==='Alternative' || variation==='Non applicable')){
         console.error('Variation invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Variation invalide.' });
     }
@@ -238,11 +238,11 @@ router.post('/create', authorizationJWT, upload.single('image'), async (req, res
         console.error('Marque invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Marque invalide.' });
     }
-    if(!creation_year || !creation_year.match(yearRegex)){
+    if(!creation_year || typeof(creation_year)!=='string'|| !creation_year.match(yearRegex)){
         console.error('Année invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Année invalide.' });
     }
-    if(!size || !size.match(wordRegex)){
+    if(!size || typeof(size)!=='string' || !size.match(wordRegex)){
         console.error('Taille invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Taille invalide.' });
     }
@@ -262,7 +262,7 @@ router.post('/create', authorizationJWT, upload.single('image'), async (req, res
             console.error('Erreur SQL :', err);
             return res.status(500).json({ error: 'Erreur serveur', details: err });
         }
-        return res.status(200).send({ message: 'Catégorie créée avec succès', name: name });
+        return res.status(200).send({ message: 'Produit créée avec succès', name: name });
     });
 });
 
@@ -326,11 +326,11 @@ router.put('/update/:id', authorizationJWT, upload.single('image'), async (req, 
         return res.status(401).json({ error: 'Forbidden.' });
     }
     const { name, description, category, team, variation, brand, creation_year, size, price, quantity } = req.body;
-    if(!name || !name.match(wordRegex)){
+    if(!name || typeof(name)!=='string' || !name.match(wordRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!description || !description.match(wordRegex)){
+    if(!description || typeof(description)!=='string' || !description.match(wordRegex)){
         console.error('Description invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Description invalide.' });
     }
@@ -342,7 +342,7 @@ router.put('/update/:id', authorizationJWT, upload.single('image'), async (req, 
         console.error('Equipe invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Equipe invalide.' });
     }
-    if(!(variation==='Domicile' || variation==='Extérieur' || variation==='Alternative')){
+    if(!(variation==='Domicile' || variation==='Extérieur' || variation==='Alternative' || variation==='Non applicable')){
         console.error('Variation invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Variation invalide.' });
     }
@@ -350,11 +350,11 @@ router.put('/update/:id', authorizationJWT, upload.single('image'), async (req, 
         console.error('Marque invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Marque invalide.' });
     }
-    if(!creation_year || !creation_year.match(yearRegex)){
+    if(!creation_year || typeof(creation_year)!=='string'|| !creation_year.match(yearRegex)){
         console.error('Année invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Année invalide.' });
     }
-    if(!size || !size.match(wordRegex)){
+    if(!size || typeof(size)!=='string' || !size.match(wordRegex)){
         console.error('Taille invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Taille invalide.' });
     }

@@ -64,11 +64,11 @@ const wordRegex = /^[A-Za-z0-9À-ÖØ-öø-ÿ\s\-']{1,255}$/;
  *       500:
  *         description: Erreur serveur
  */
-router.get('/', (req, res) => {
+router.get('/', authorizationJWT, (req, res) => {
     if(req.user.role!=="admin"){
         return res.status(401).json({ error: 'Forbidden.' });
     }
-    const sql = 'SELECT * FROM deliveries SORT BY created_at DESC';
+    const sql = 'SELECT * FROM deliveries ORDER BY created_at DESC';
     db.query(sql, (err, results) => {
         if(err){
             return res.status(500).json({ error: 'Erreur serveur', details: err });
@@ -107,10 +107,14 @@ router.get('/today', authorizationJWT, (req, res) => {
     }
     const date = new Date();
     const dateString = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-    const sql = 'SELECT SUM(total_price) FROM deliveries WHERE created_at > ?';
+    console.log(date, dateString);
+    const sql = 'SELECT SUM(total_price) AS total FROM deliveries WHERE created_at = ?';
     db.query(sql, [dateString], (err, results) => {
         if(err){
             return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        if(results[0].total===null){
+            results[0].total=0;
         }
         return res.status(200).json(results);
     });
@@ -144,15 +148,16 @@ router.get('/yesterday', authorizationJWT, (req, res) => {
     if(req.user.role!=="admin"){
         return res.status(401).json({ error: 'Forbidden.' });
     }
-    const dateToday = new Date();
     const yesterday = Date.now() + -1*24*3600*1000;
     const dateYeseterday = new Date(yesterday);
-    const todayString = `${dateToday.getFullYear()}-${dateToday.getMonth()+1}-${dateToday.getDate()}`;
     const yesterdayString = `${dateYeseterday.getFullYear()}-${dateYeseterday.getMonth()+1}-${dateYeseterday.getDate()}`;
-    const sql = 'SELECT SUM(total_price) FROM deliveries WHERE created_at BETWEEN ? AND ?';
-    db.query(sql, [yesterdayString, todayString], (err, results) => {
+    const sql = 'SELECT SUM(total_price) AS total FROM deliveries WHERE created_at = ?';
+    db.query(sql, [yesterdayString], (err, results) => {
         if(err){
             return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        if(results[0].total===null){
+            results[0].total=0;
         }
         return res.status(200).json(results);
     });
@@ -191,10 +196,13 @@ router.get('/lastmonth', authorizationJWT, (req, res) => {
     lastMonth.setMonth(dateToday.getMonth()-1);
     const todayString = `${dateToday.getFullYear()}-${dateToday.getMonth()+1}-01`;
     const lastMonthString = `${lastMonth.getFullYear()}-${lastMonth.getMonth()+1}-01`;
-    const sql = 'SELECT SUM(total_price) FROM deliveries WHERE created_at BETWEEN ? AND ?';
+    const sql = 'SELECT SUM(total_price) AS total FROM deliveries WHERE created_at BETWEEN ? AND ?';
     db.query(sql, [lastMonthString, todayString], (err, results) => {
         if(err){
             return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        if(results[0].total===null){
+            results[0].total=0;
         }
         return res.status(200).json(results);
     });
@@ -343,6 +351,9 @@ router.get('/profile/:id', authorizationJWT, (req, res) => {
     db.query(sql, [userId, id], (err, results) => {
         if(err){
             return res.status(500).json({ error: 'Erreur serveur', details: err });
+        }
+        if(results.length<1){
+            return res.status(401).json({ error: 'Forbidden.' });
         }
         return res.status(200).json(results);
     });
@@ -590,6 +601,10 @@ router.post('/create', authorizationJWT, async (req, res) => {
     const sql1 = 'SELECT id, quantity FROM products WHERE id IN (?)';
     const sql2 = 'INSERT INTO deliveries (user, address, products, total_price) VALUES (?, ?, ?, ?)';
     const sql3 = 'UPDATE products SET quantity = quantity - ?, sold = sold + ? WHERE id = ?';
+    if(!address || typeof(address)!=='string' || !address.match(wordRegex)){
+        console.error('Adresse invalide.');
+        return res.status(400).json({ error: 'Erreur requête', details: 'Adresse invalide.' });
+    }
     let productArray;
     try {
         productArray = JSON.parse(products);
@@ -602,13 +617,12 @@ router.post('/create', authorizationJWT, async (req, res) => {
         return res.status(400).json({ error: 'Erreur requête', details: 'Format des produits invalide.' });
     }
     let totalPrice = 0;
-    const productQuantities = productArray.map(product => [product.id, product.quantity]);
     for (const product of productArray) {
         if (!product.id || isNaN(product.id)) {
             console.error('Erreur de requête à la base de donnée.');
             return res.status(400).json({ error: 'Erreur requête', details: 'ID produits invalide.' });
         }
-        if (!product.name || !product.name.match(wordRegex)) {
+        if (!product.name || typeof(product.name)!=='string' || !product.name.match(wordRegex)) {
             console.error('Erreur de requête à la base de donnée.');
             return res.status(400).json({ error: 'Erreur requête', details: 'Nom produits invalide.' });
         }
@@ -624,9 +638,14 @@ router.post('/create', authorizationJWT, async (req, res) => {
             console.error('Erreur de requête à la base de donnée.');
             return res.status(500).json({ error: 'Erreur serveur', details: err });
         }
-        const insufficientStock = stockResults.some(stock => {
-            const requestedQuantity = productQuantities.find(pq => pq[0] === stock.id)[1];
-            return stock.quantity < requestedQuantity;
+        const stockMap = new Map(stockResults.map(stock => [stock.id, stock.quantity]));
+        const invalidProduct = productArray.some(product => !stockMap.has(product.id));
+        if (invalidProduct) {
+            return res.status(400).json({ error: 'Erreur requête', details: 'Produit invalide ou inexistant.' });
+        }
+        const insufficientStock = productArray.some(product => {
+            const availableStock = stockMap.get(product.id);
+            return availableStock < product.quantity;
         });
         if (insufficientStock) {
             return res.status(400).json({ error: 'Erreur requête', details: 'Pas assez de stock pour un ou plusieurs produits.' });
@@ -638,12 +657,19 @@ router.post('/create', authorizationJWT, async (req, res) => {
                     db.rollback(() => res.status(500).json({ error: 'Erreur serveur', details: err }));
                     return;
                 }
-                const updateStockValues = productArray.map(product => [product.quantity, product.quantity, product.id]);
-                db.query(sql3, [updateStockValues], (err) => {
-                    if (err) {
-                        db.rollback(() => res.status(500).json({ error: 'Erreur serveur', details: err }));
-                        return;
-                    }
+                const updatePromises = productArray.map((product) => {
+                    return new Promise((resolve, reject) => {
+                        db.query(sql3, [product.quantity, product.quantity, product.id], (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                });
+                Promise.all(updatePromises)
+                .then(() => {
                     db.commit((err) => {
                         if (err) {
                             db.rollback(() => res.status(500).json({ error: 'Erreur serveur', details: err }));
@@ -651,6 +677,9 @@ router.post('/create', authorizationJWT, async (req, res) => {
                             res.status(200).json({ message: 'Livraison créée avec succès', products });
                         }
                     });
+                })
+                .catch((err) => {
+                    db.rollback(() => res.status(500).json({ error: 'Erreur serveur', details: err }));
                 });
             });
         });
@@ -707,18 +736,18 @@ router.put('/update/:id', authorizationJWT, async (req, res) => {
     if (req.user.role !== "admin") {
         return res.status(401).json({ error: 'Forbidden.' });
     }
-    const { status } = req.body;
-    if (!(status === 'Livrée' || status === 'En cours')) {
+    const { delivery_status } = req.body;
+    if (delivery_status !== 'Livrée' && delivery_status !== 'En cours') {
         return res.status(400).json({ error: 'Erreur requête', details: 'Status invalide.' });
     }
     const id = req.params.id;
-    const sql = 'UPDATE categories SET status = ? WHERE id = ?'
-    db.query(sql, [status, id], (err, results) => {
+    const sql = 'UPDATE deliveries SET delivery_status = ? WHERE id = ?'
+    db.query(sql, [delivery_status, id], (err, results) => {
         if(err){
             console.error('Erreur de requête à la base de donnée.');
             return res.status(500).json({ error: 'Erreur serveur', details: err });
         }
-        return res.status(200).send({ message: 'Livraison modifiée avec succès', name: name });
+        return res.status(200).send({ message: 'Livraison modifiée avec succès', delivery_status: delivery_status });
     });
 });
 

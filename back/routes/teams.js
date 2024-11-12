@@ -149,11 +149,11 @@ router.post('/create', authorizationJWT, async (req, res) => {
         return res.status(401).json({ error: 'Forbidden.' });
     }
     const {name, color} = req.body;
-    if(!name || !name.match(wordRegex)){
+    if(!name || typeof(name)!=='string' || !name.match(wordRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!color || !color.match(colorRegex)){
+    if(!color || typeof(color)!=='string' || !color.match(colorRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Couleur invalide.' });
     }
@@ -282,7 +282,7 @@ router.delete('/delete/:id', authorizationJWT, async (req, res) => {
     if(req.user.role!=="admin"){
         return res.status(401).json({ error: 'Forbidden.' });
     }
-    const { id } = req.params.id;
+    const id = req.params.id;
     const sql1 = 'SELECT * FROM products WHERE team = ?'
     const sql2 = 'DELETE FROM teams WHERE id = ?'
     db.query(sql1, [id], (err, results) => {
@@ -293,13 +293,13 @@ router.delete('/delete/:id', authorizationJWT, async (req, res) => {
             console.log('Un produit correspond à cette équipe, retirez le avant de supprimer la équipe.');
             return res.status(400).json({ error: 'Erreur requête', details: 'Un produit correspond à cette équipe, retirez le avant de supprimer la équipe.' });
         }
-    });
-    db.query(sql2, [id], (err, results) => {
-        if(err){
-            console.error('Erreur de requête à la base de donnée.');
-            return res.status(500).json({ error: 'Erreur serveur', details: err });
-        }
-        return res.status(200).json({ message: 'Équipe effacée avec succès' });
+        db.query(sql2, [id], (err, results) => {
+            if(err){
+                console.error('Erreur de requête à la base de donnée.');
+                return res.status(500).json({ error: 'Erreur serveur', details: err });
+            }
+            return res.status(200).json({ message: 'Équipe effacée avec succès' });
+        });
     });
 });
 

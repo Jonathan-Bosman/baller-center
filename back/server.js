@@ -7,6 +7,7 @@ const productsRoutes = require('./routes/products.js');
 const categoriesRoutes = require('./routes/categories.js');
 const teamsRoutes = require('./routes/teams.js');
 const brandsRoutes = require('./routes/brands.js');
+const deliveriesRoutes = require('./routes/deliveries.js');
 const cors = require('cors');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
@@ -41,6 +42,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/teams', teamsRoutes);
 app.use('/api/brands', brandsRoutes);
+app.use('/api/deliveries', deliveriesRoutes);
 
 db.connect((err) => {
     if (err) {console.log(err);}
