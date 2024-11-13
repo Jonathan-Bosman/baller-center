@@ -2,13 +2,20 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./modules/database.js');
+const usersRoutes = require('./routes/users.js');
+const productsRoutes = require('./routes/products.js');
+const categoriesRoutes = require('./routes/categories.js');
+const teamsRoutes = require('./routes/teams.js');
+const brandsRoutes = require('./routes/brands.js');
+const deliveriesRoutes = require('./routes/deliveries.js');
 const cors = require('cors');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const path = require('path');
 
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:8080'
+    origin: 'http://localhost:5173'
 }))
 const swaggerOptions = {
     swaggerDefinition: {
@@ -18,7 +25,7 @@ const swaggerOptions = {
             version: '0.0.1',
             description: '',
             contact: {
-                name: 'Jonathan'
+                name: 'Brandon, Jean-Baptiste, Jonathan, Laurence'
             },
         },
         servers: [{url: 'http://localhost:3000/api'}]
@@ -27,9 +34,15 @@ const swaggerOptions = {
 }
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/api-doc', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(bodyParser.json());
-// app.use('/api/name', nameRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/teams', teamsRoutes);
+app.use('/api/brands', brandsRoutes);
+app.use('/api/deliveries', deliveriesRoutes);
 
 db.connect((err) => {
     if (err) {console.log(err);}
