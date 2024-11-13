@@ -11,9 +11,9 @@
                 <h2>Rejoingnez-nous</h2>
             </div>
             <div class="icon-reseau">
-                <img src="../assets/Facebook.png" alt="" class="fb">
-                <img src="../assets/Instagram.png" alt="" class="insta">
-                <img src="../assets/TikTok.png" alt="" class="tt">
+                <img src="../assets/Facebook.svg" alt="" class="fb">
+                <img src="../assets/Instagram.svg" alt="" class="insta">
+                <img src="../assets/TikTok.svg" alt="" class="tt">
             </div>
         </div>
         <div class="mention">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FooterSide from './components/FooterSide.vue';
-import HearderSide from './components/HearderSide.vue';
+import HeaderSide from './components/HeaderSide.vue';
 </script>
 
 <template>
@@ -19,7 +19,7 @@ import HearderSide from './components/HearderSide.vue';
 h1 {
   font-family: var(--font-carterone);
 }
-p, label, button, a, h2, input {
+* {
   font-family: var(--font-montserrat);
 }
 </style>
