@@ -136,7 +136,7 @@ router.post('/create', authorizationJWT, async (req, res) => {
         return res.status(401).json({ error: 'Forbidden.' });
     }
     const {name} = req.body;
-    if(!name || !name.match(wordRegex)){
+    if(!name || typeof(name)!=='string' || !name.match(wordRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }

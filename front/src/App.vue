@@ -1,83 +1,26 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import FooterSide from './components/FooterSide.vue';
+import HeaderSide from './components/HeaderSide.vue';
 </script>
 
 <template>
-  <!-- <header>
-    
-    <div class="wrapper">
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-        <RouterLink to="/Inscription">Inscription</RouterLink>
-      </nav>
-    </div>
-  </header> -->
-
+  <HeaderSide/>
   <RouterView />
+  <FooterSide/>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Carter+One&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swa');
+:root {
+  --font-carterone: 'CarterOne, sans-serif';
+  --font-montserrat: 'Montserrat, sans-serif'
 }
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+h1 {
+  font-family: var(--font-carterone);
 }
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+* {
+  font-family: var(--font-montserrat);
 }
 </style>
