@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { RouterView } from 'vue-router'
 import FooterSide from './components/FooterSide.vue';
 import HeaderSide from './components/HeaderSide.vue';
 </script>
 
 <template>
-  <HearderSide/>
+  <HeaderSide/>
   <RouterView />
   <FooterSide/>
 </template>
