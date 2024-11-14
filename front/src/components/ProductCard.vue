@@ -1,7 +1,7 @@
 <template>
     <div class="cardContainer">
         <div class='imageWrapper'>
-            <img :src="imageSrc" @error="imageLoadError" alt="Image du plat" />
+            <img :src="imageSrc" @error="imageLoadError" :alt="props.nomProduit" />
         </div> 
       <div class="description">
         <p>{{ props.nomProduit }}</p>
@@ -38,20 +38,11 @@ const imageLoadError = () => {
     flex-direction: column;
 }
 
-
-.image{    
-    background-image: url('https://ralfvanveen.com/wp-content/uploads/2021/06/Espace-r%C3%A9serv%C3%A9-_-Glossaire.svg');
-    background-size: cover;
-    min-width: 1rem;
-    aspect-ratio: 16/12;
-    border: solid 1px #0F0F0F;
-    font-size: 14px;
-    width: 100%;
-}
-
 .imageWrapper{
     position: relative;
     overflow: hidden;
+    aspect-ratio: 16/12;
+    border: solid 1px #0F0F0F;
     width: 100%;
 }
 

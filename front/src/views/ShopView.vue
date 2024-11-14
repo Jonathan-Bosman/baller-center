@@ -16,7 +16,7 @@
                 :id="product.id"
                 :nomProduit="product.name"
                 :nomCategorie="categories[product.category-1].name"
-                :prix="product.price+100"
+                :prix="product.price"
                 :url="'http://localhost:3000/uploads/'+product.filepath"
                 />
         </div>
