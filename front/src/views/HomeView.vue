@@ -11,6 +11,7 @@ import TheWelcome from '../components/TheWelcome.vue'
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/Inscription">Inscription</RouterLink>
+        <RouterLink to="/Connexion">Connexion</RouterLink>
         <RouterLink to="/about">About</RouterLink>
       </nav>
     </div>
