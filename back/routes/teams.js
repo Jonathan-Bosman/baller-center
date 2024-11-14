@@ -225,11 +225,11 @@ router.put('/update/:id', authorizationJWT, async (req, res) => {
         return res.status(401).json({ error: 'Forbidden.' });
     }
     const {name, color} = req.body;
-    if(!name || !name.match(wordRegex)){
+    if(!name || typeof(name)!=='string' || !name.match(wordRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!color || !color.match(colorRegex)){
+    if(!color || typeof(color)!=='string' || !color.match(colorRegex)){
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Couleur invalide.' });
     }
