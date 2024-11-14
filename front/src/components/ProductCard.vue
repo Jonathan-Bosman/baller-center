@@ -59,7 +59,6 @@ img{
     flex-direction: column;
     justify-content: flex-start;
 }
-
 .description>p{
     margin: 0;
     padding: 0;
