@@ -6,21 +6,29 @@
       <div class="description">
         <p>{{ props.nomProduit }}</p>
         <p>{{ props.nomCategorie }}</p>
-        <p>{{ props.prix?`${((props.prix/100) + "").split(".")}`:0 }}€</p>
+        <p>{{ props.prix?`${((props.prix/100) + "").slice(0,((props.prix) + "").length-2)},${((props.prix) + "").slice(((props.prix) + "").length-2)}`:'0,00' }}€</p>
       </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from 'vue';
+import { ref } from 'vue';
 import noImage from '../assets/NoImage.png';
 
 const props = defineProps({
     id: Number,
     nomProduit: String,
+    categoryId: Number,
     nomCategorie: String,
+    teamId: Number,
+    nomEquipe: String,
+    couleurEquipe: String,
+    brandId: Number,
+    nomMarque: String,
+    varation: String,
+    anneeCreation: Number,
     prix: Number,
-    url: String,
+    url: String
 });
 
 const imageSrc = ref(props.url);
