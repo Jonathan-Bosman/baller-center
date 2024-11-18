@@ -331,7 +331,7 @@ router.put('/update/:id', authorizationJWT, upload.single('image'), async (req, 
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!description || typeof(description)!=='string' || !description.match(wordRegex)){
+    if(!description || typeof(description)!=='string' || !description.match(descriptionRegex)){
         console.error('Description invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Description invalide.' });
     }
