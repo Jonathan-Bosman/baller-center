@@ -6,7 +6,7 @@
       <div class="description">
         <p>{{ props.nomProduit }}</p>
         <p>{{ props.nomCategorie }}</p>
-        <p>{{ props.prix?`${((props.prix/100) + "").slice(0,((props.prix) + "").length-2)},${((props.prix) + "").slice(((props.prix) + "").length-2)}`:'0,00' }}€</p>
+        <p>{{ props.prix?`${((props.prix) + "").slice(0,((props.prix) + "").length-2)},${((props.prix) + "").slice(((props.prix) + "").length-2)}`:'0,00' }}€</p>
       </div>
     </div>
 </template>
