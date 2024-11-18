@@ -26,7 +26,7 @@
                 :nomMarque="categories[product.brand-1].name"
                 :variation="product.variation"
                 :anneeCreation="product.creation_year"
-                :prix="product"
+                :prix="product.price"
                 :url="'http://localhost:3000/uploads/'+product.filepath"
                 />
         </div>
