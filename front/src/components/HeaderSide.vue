@@ -56,7 +56,7 @@
         <ul v-else>
           <li><router-link to="/">Accueil</router-link></li>
           <li><router-link to="/shop">Nos produits</router-link></li>
-          <li><router-link to="/InscriptionForm">S'inscrire</router-link></li>
+          <li><router-link to="/inscription" @click="Menu">S'inscrire</router-link></li>
           <li><router-link to="/FormLogin">Se Connecter</router-link></li>
         </ul>
       </div>
