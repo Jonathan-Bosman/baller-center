@@ -30,6 +30,17 @@
 </template>
 
 <style scoped>
+.bot {
+        background-color: #1D428A;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    .logo {
+        width: 120px;
+        height: 120px;
+    }
 @media(min-width: 390px) and (max-width: 767px)  {
     .bot {
         background-color: #1D428A;
