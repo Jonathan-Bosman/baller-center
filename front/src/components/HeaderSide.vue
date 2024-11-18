@@ -260,7 +260,7 @@ onMounted(() => {
   .burger-dropdown .deco {
     color: #1D428A;
   }
-/* @media screen and (min-width: 992px){
+@media screen and (min-width: 992px){
   .menu {
     display: none;
   }
@@ -337,5 +337,5 @@ onMounted(() => {
       width: 20px;
       height: 20px;
     }
-} */
+}
 </style>
