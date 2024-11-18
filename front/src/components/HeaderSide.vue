@@ -48,16 +48,16 @@
     <transition name="slide-right">
       <div v-show="isMenuOpen" class="burger-dropdown">
         <ul v-if="user">
-          <li><router-link to="/">Accueil</router-link></li>
-          <li><router-link to="/PageProduits">Nos produits</router-link></li>
-          <li><router-link to="/PageProfile">Mon Compte</router-link></li>
+          <li><router-link to="/" @click="Menu">Accueil</router-link></li>
+          <li><router-link to="/shop" @click="Menu">Nos produits</router-link></li>
+          <li><router-link to="/PageProfile" @click="Menu">Mon Compte</router-link></li>
           <li><a href="/LoginForm" @click="logout" class="deco">Deconnexion</a></li>
         </ul>
         <ul v-else>
-          <li><router-link to="/">Accueil</router-link></li>
-          <li><router-link to="/shop">Nos produits</router-link></li>
+          <li><router-link to="/" @click="Menu">Accueil</router-link></li>
+          <li><router-link to="/shop" @click="Menu">Nos produits</router-link></li>
           <li><router-link to="/inscription" @click="Menu">S'inscrire</router-link></li>
-          <li><router-link to="/FormLogin">Se Connecter</router-link></li>
+          <li><router-link to="/FormLogin" @click="Menu">Se Connecter</router-link></li>
         </ul>
       </div>
     </transition>
@@ -103,6 +103,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 const logout = () => {
   localStorage.removeItem('user');
   user.value = null;
+  Menu();
   router.push('/FormLogin');
 };
 
