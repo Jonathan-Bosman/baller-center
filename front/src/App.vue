@@ -4,7 +4,7 @@ import HeaderSide from './components/HeaderSide.vue';
 </script>
 
 <template>
-  <HearderSide/>
+  <HeaderSide/>
   <RouterView />
   <FooterSide/>
 </template>
