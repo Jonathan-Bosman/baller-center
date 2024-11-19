@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 const wordRegex = /^[A-Za-z0-9À-ÖØ-öø-ÿ\s\-']{1,255}$/;
-const descriptionRegex = /^[A-Za-z0-9À-ÖØ-öø-ÿ\s\-'.,;µ!#£€$%&'*+=?^_`¤[({|})\]~-]{1,255}$/gm;
+const descriptionRegex = /[A-Za-z0-9À-ÖØ-öø-ÿ\s\-'.,;:µ!#£€$%&'*+=?^_`¤[({<|>})\]~-]+/g;
 const yearRegex = /^[0-9]{4}$/;
 
 /**
