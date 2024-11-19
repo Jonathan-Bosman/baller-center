@@ -1,12 +1,40 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { RouterView } from 'vue-router'
 import FooterSide from './components/FooterSide.vue';
 import HeaderSide from './components/HeaderSide.vue';
+
+const querySearch = ref('');
+const categorySearch = ref(0);
+const teamSearch = ref(0);
+const brandSearch = ref(0);
+const receiveSearch = (query :string) =>{
+  querySearch.value = query;
+}
+const receiveCategory = (query :number) =>{
+  categorySearch.value = query;
+}
+const receiveTeam = (query :number) =>{
+  teamSearch.value = query;
+}
+const receiveBrand = (query :number) =>{
+  brandSearch.value = query;
+}
 </script>
 
 <template>
-  <HeaderSide/>
-  <RouterView />
+  <HeaderSide
+    @emitSearch="receiveSearch"
+    @emitCategory="receiveCategory"
+    @emitTeam="receiveTeam"
+    @emitBrand="receiveBrand"
+    />
+  <RouterView
+    :querySearch="querySearch"
+    :categorySearch="categorySearch"
+    :teamSearch="teamSearch"
+    :brandSearch="brandSearch"
+    />
   <FooterSide/>
 </template>
 

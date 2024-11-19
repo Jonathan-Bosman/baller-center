@@ -31,7 +31,29 @@
               class="search-input"
               placeholder="Entrez votre recherche"
               @keydown="handleKeydown"
+              @input="Search"
             />
+          </label>
+          <div class='loader' v-if="isLoading">
+            <SpinnerLoader/>
+          </div>
+          <label v-if="!isLoading && categories.length>0" for="category">Catégories :
+            <select v-model="categoryQuery" name="category" id="category" @change="Search">
+              <option value=0>Toutes</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+            </select>
+          </label>
+          <label v-if="!isLoading && teams.length>0" for="team"> Equipes :
+            <select v-model="teamQuery" name="team" id="team" @change="Search">
+              <option value=0>Toutes</option>
+              <option v-for="team in teams" :key="team.id" :value="team.id" :style="{ color: team.color }">{{ team.name }}</option>
+            </select>
+          </label>
+          <label v-if="!isLoading && brands.length>0" for="brand">Marques :
+          <select v-model="brandQuery" name="brand" id="brand" @change="Search">
+            <option value=0>Toutes</option>
+            <option v-for="brand in brands" :key="brand.id" :value="brand.id">{{ brand.name }}</option>
+          </select>
           </label>
           <button @click="Search" class="recherche-btn">Recherche</button>
         </div>
@@ -68,13 +90,25 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import SpinnerLoader from './SpinnerLoader.vue';
 
 const router = useRouter();
 const isSearchOpen = ref(false);
-const searchQuery = ref('');
+const searchQuery = ref<string>('');
+
+const teamQuery = ref<number>(0);
+const brandQuery = ref<number>(0);
+const categoryQuery = ref<number>(0);
+const categories = ref();
+const teams = ref();
+const brands = ref();
+const isLoading = ref(true);
+
 const isMenuOpen = ref(false);
 const isMobile = ref(window.innerWidth < 992);
 const searchVisible = ref(window.innerWidth > 992);
+
+const emits = defineEmits(['emitSearch', 'emitCategory', 'emitTeam', 'emitBrand']);
 
 const user = ref<{ name: string; email: string } | null>(null);
 
@@ -87,11 +121,15 @@ const Menu = () => {
 };
 
 const Search = () => {
-  if (searchQuery.value) {
+  if (searchQuery.value !== null || undefined) {
     console.log(`Recherche pour : ${searchQuery.value}`);
+    emits('emitSearch', searchQuery.value);
   } else {
     console.log('Veuillez entrer une recherche');
   }
+  if(categoryQuery.value)emits('emitCategory', categoryQuery.value);
+  if(teamQuery.value)emits('emitTeam', teamQuery.value);
+  if(brandQuery.value)emits('emitBrand', brandQuery.value);
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -107,7 +145,7 @@ const logout = () => {
   router.push('/FormLogin');
 };
 
-onMounted(() => {
+onMounted(async () => {
   const userData = localStorage.getItem('user');
   if (userData) {
     user.value = JSON.parse(userData);
@@ -116,6 +154,41 @@ onMounted(() => {
     isMobile.value = window.innerWidth < 992;
     searchVisible.value = window.innerWidth > 992;
   });
+
+  try{
+      const resCategories = await fetch('http://localhost:3000/api/categories/',{
+          headers: {'Content-Type': 'application/json'}
+      });
+      if(!resCategories.ok){
+          isLoading.value = false;
+          return;
+      } else {
+          categories.value = await resCategories.json();
+      }
+      const resTeams = await fetch('http://localhost:3000/api/teams/',{
+          headers: {'Content-Type': 'application/json'}
+      });
+      if(!resTeams.ok){
+          isLoading.value = false;
+          return;
+      } else {
+          teams.value = await resTeams.json();
+      }
+      const resBrands = await fetch('http://localhost:3000/api/brands/',{
+          headers: {'Content-Type': 'application/json'}
+      });
+      if(!resBrands.ok){
+          isLoading.value = false;
+          return;
+      } else {
+          brands.value = await resBrands.json();
+      }
+    } catch(err) {
+        console.error(err);
+        isLoading.value = false;
+        return;
+    }
+    isLoading.value = false;
 });
 </script>
 
@@ -260,6 +333,10 @@ onMounted(() => {
   }
   .burger-dropdown .deco {
     color: #1D428A;
+  }
+  .loader {
+    width: 5px;
+    margin: auto;
   }
 @media screen and (min-width: 992px){
   .menu {
