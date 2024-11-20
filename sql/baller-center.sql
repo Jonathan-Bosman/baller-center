@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : mar. 12 nov. 2024 à 13:46
+-- Généré le : mar. 19 nov. 2024 à 15:14
 -- Version du serveur : 10.4.27-MariaDB
 -- Version de PHP : 8.2.0
 
@@ -118,7 +118,8 @@ CREATE TABLE `products` (
 INSERT INTO `products` (`id`, `name`, `description`, `category`, `team`, `variation`, `brand`, `creation_year`, `size`, `price`, `quantity`, `sold`, `filename`, `filepath`) VALUES
 (1, 'Maillot raptor', 'Un maillot de l\'équipe des Raptors', 1, 1, 'Domicile', 1, '2020', '2XL', 12000, 23, 1, 'test.jpg', 'uploads\\test.jpg'),
 (2, 'Maillot raptor', 'Un maillot de l\'équipe des Raptors', 1, 1, 'Extérieur', 1, '2020', '2XL', 12000, 21, 3, 'test.jpg', 'uploads\\test.jpg'),
-(3, 'Maillot raptor', 'Un maillot de l\'équipe des Raptors', 1, 1, 'Alternative', 1, '2020', '2XL', 12000, 23, 1, 'test.jpg', 'uploads\\test.jpg');
+(3, 'Maillot raptor', 'Un maillot de l\'équipe des Raptors', 1, 1, 'Alternative', 1, '2020', '2XL', 12000, 23, 1, 'test.jpg', 'uploads\\test.jpg'),
+(4, 'Maillot Hornets', 'Maillot aux couleurs des Charlotte Hornets. Fait dans un matériaux comfortable et durable.', 1, 2, 'Domicile', 1, '2024', 'M', 1200, 24, 0, 'test.jpg', 'uploads\\test.jpg');
 
 -- --------------------------------------------------------
 
@@ -131,6 +132,14 @@ CREATE TABLE `teams` (
   `name` varchar(255) NOT NULL,
   `color` varchar(7) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `teams`
+--
+
+INSERT INTO `teams` (`id`, `name`, `color`) VALUES
+(1, 'Raptors', '#CE1141'),
+(2, 'Hornets', '#1d1160');
 
 -- --------------------------------------------------------
 
@@ -156,7 +165,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `role`, `firstname`, `lastname`, `email`, `password`, `telephone`, `address`, `zipcode`, `created_at`) VALUES
-(1, 'admin', 'Aïcha', 'Dmin', 'admin@baller-center.com', '$2b$10$eAu7eqquNnQQNqRlR0n9H./LTmSKt8vF4WTSSXdQKwDGazsG9.yES', '0033601234567', '8 rue de l\'adresse', '90123', '2024-11-12 08:00:41'),
+(1, 'admin', 'Aïcha', 'Dmin', 'admin@baller-center.com', '$2b$10$eAu7eqquNnQQNqRlR0n9H./LTmSKt8vF4WTSSXdQKwDGazsG9.yES', '0033601234567', '8 rue de l\'adresse', '90123', '2024-11-18 14:15:39'),
 (2, 'user', 'Ursula', 'Ser', 'u.Ser@gmail.com', '$2b$10$J9heFdJUMq36q5gZFz6l2.DGiVAb1gcDzNZ7Db9X.Dudj4h.EfyRO', '003300000001', '8 rue de l\'adresse bis', '90123', '2024-11-12 09:16:31');
 
 --
@@ -226,13 +235,13 @@ ALTER TABLE `deliveries`
 -- AUTO_INCREMENT pour la table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT pour la table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `users`

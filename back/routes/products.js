@@ -14,6 +14,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 const wordRegex = /^[A-Za-z0-9À-ÖØ-öø-ÿ\s\-']{1,255}$/;
+const descriptionRegex = /[A-Za-z0-9À-ÖØ-öø-ÿ\s\-'.,;:µ!#£€$%&'*+=?^_`¤[({<|>})\]~-]+/g;
 const yearRegex = /^[0-9]{4}$/;
 
 /**
@@ -218,7 +219,7 @@ router.post('/create', authorizationJWT, upload.single('image'), async (req, res
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!description || typeof(description)!=='string' || !description.match(wordRegex)){
+    if(!description || typeof(description)!=='string' || !description.match(descriptionRegex)){
         console.error('Description invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Description invalide.' });
     }
@@ -330,7 +331,7 @@ router.put('/update/:id', authorizationJWT, upload.single('image'), async (req, 
         console.error('Nom invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Nom invalide.' });
     }
-    if(!description || typeof(description)!=='string' || !description.match(wordRegex)){
+    if(!description || typeof(description)!=='string' || !description.match(descriptionRegex)){
         console.error('Description invalide.');
         return res.status(400).json({ error: 'Erreur requête', details: 'Description invalide.' });
     }
