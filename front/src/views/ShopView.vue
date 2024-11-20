@@ -1,6 +1,6 @@
 <template>
     <div class="wrapper">
-        <SpinnerLoader v-if="isLoading"/>
+        <SpinnerLoader class='loader' v-if="isLoading"/>
         <p v-if="!isLoading && loadingError !==''">Erreur lors du chargement.</p>
         <div
             class='cardContainer'
@@ -11,19 +11,19 @@
                 && teams.length>0
                 && brands.length>0"
             >
+            <p v-if="searchedProducts.length<1">Désolé, aucun produit ne correspond à votre recherche...</p>
             <ProductCard
                 class='card'
-                v-for="(product, index) in products"
-                :key="index"
-                :id="product.id"
+                v-for="product in searchedProducts"
+                :key="product.id"
                 :nomProduit="product.name"
                 :categoryId="product.category"
-                :nomCategorie="categories[product.category-1].name"
+                :nomCategorie="categories[categories.findIndex(item => item.id === product.category)].name"
                 :TeamId="product.Team"
-                :nomEquipe="categories[product.team-1].name"
-                :couleurEquipe="categories[product.team-1].color"
+                :nomEquipe="teams[teams.findIndex(item => item.id === product.team)].name"
+                :couleurEquipe="teams[teams.findIndex(item => item.id === product.team)].color"
                 :brandId="product.brand"
-                :nomMarque="categories[product.brand-1].name"
+                :nomMarque="brands[brands.findIndex(item => item.id === product.brand)].name"
                 :variation="product.variation"
                 :anneeCreation="product.creation_year"
                 :prix="product.price"
@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
 import ProductCard from '@/components/ProductCard.vue';
 import SpinnerLoader from '@/components/SpinnerLoader.vue';
 
@@ -44,6 +44,63 @@ const teams = ref();
 const brands = ref();
 const isLoading = ref<boolean>(true);
 const loadingError = ref<string>('');
+
+const props = defineProps({
+    querySearch: String,
+    categorySearch: Number,
+    teamSearch: Number,
+    brandSearch: Number,
+    variationSearch: String,
+    yearSearch: String,
+    sizeSearch: String
+});
+
+const formatSearch = (text :string) :string =>{
+    text = text.toString();
+    text = text.replace(/[àáâäãÀÁÂÄÃ]/g,'a');
+    text = text.replace(/[ìíîïÌÍÎÏ]/g,'i');
+    text = text.replace(/[ùúûüÙÚÛÜ]/g,'u');
+    text = text.replace(/[èéêëÈÉÊË]/g,'e');
+    text = text.replace(/[òóôöõÒÓÔÖÕ]/g,'o');
+    text = text.replace(/[ýÿÝŸ]/g,'y');
+    text = text.replace(/[æÆ]/g,'ae');
+    text = text.replace(/[œŒ]/g,'oe');
+    text = text.replace(/[ñÑ]/g,'n');
+    text = text.replace(/[çÇ]/g,'c');
+    text = text.replace(/[ß]/g,'ss');
+    text = text.toLowerCase();
+    return text;
+}
+
+const query = ref();
+const category = ref();
+const team = ref();
+const brand = ref();
+const variation = ref();
+const year = ref();
+const size = ref();
+watchEffect( () => {
+    query.value = props.querySearch?formatSearch(props.querySearch):'';
+    category.value = props.categorySearch;
+    team.value = props.teamSearch;
+    brand.value = props.brandSearch;
+    variation.value = props.variationSearch?formatSearch(props.variationSearch):'';
+    year.value = props.yearSearch?formatSearch(props.yearSearch):'';
+    size.value = props.sizeSearch?formatSearch(props.sizeSearch):'';
+});
+const searchedProducts = computed(() => {
+    if (!products.value) return [];
+    return products.value.filter(product => {
+        const matchesQuery = query.value === '' || formatSearch(product.name).match(query.value);
+        const matchesCategory = !category.value || category.value < 1 || product.category === category.value;
+        const matchesTeam = !team.value || team.value < 1 || product.team === team.value;
+        const matchesBrand = !brand.value || brand.value < 1 || product.brand === brand.value;
+        const matchesVariation = variation.value === '' || formatSearch(product.variation).match(variation.value);
+        const matchesYear = year.value === '' || formatSearch(product.creation_year).match(year.value);
+        const matchesSize = size.value === '' || formatSearch(product.size) === size.value;
+        return matchesQuery && matchesCategory && matchesTeam && matchesBrand && matchesVariation && matchesYear && matchesSize;
+    });
+});
 
 onMounted(async () => {
     try{
@@ -105,12 +162,17 @@ onMounted(async () => {
 .wrapper{
     margin: auto;
     width: 95%;
+    min-height: 100vh;
 }
 
 p{
     text-align: center;
     font-size: 17px;
     font-family: var(--font-carter-one);
+}
+
+.loader{
+    width: 120px;
 }
 
 .cardContainer{
@@ -126,8 +188,11 @@ p{
 }
 
 @media screen and (min-width: 767px) {
+    .loader{
+        width: 240px;
+    }
     .card{
-    width: 30%;
+        width: 30%;
     }
 }
 </style>

@@ -16,7 +16,9 @@
             placeholder="Entrez votre recherche"
           />
         </label>
-         <button @click="Search" class="recherche-btn"><img src="../assets/Minisearch.svg" alt="" class="mini"></button>
+          <router-link to="/shop" @click="toggleSearch">
+            <button @click="Search" class="recherche-btn"><img src="../assets/Minisearch.svg" alt="" class="mini"></button>
+          </router-link>
       </div>
       <div v-else>
         <img src="../assets/Search.svg" alt="" @click="toggleSearch">
@@ -31,9 +33,48 @@
               class="search-input"
               placeholder="Entrez votre recherche"
               @keydown="handleKeydown"
+              @input="Search"
             />
           </label>
-          <button @click="Search" class="recherche-btn">Recherche</button>
+          <div class='loader' v-if="isLoading">
+            <SpinnerLoader/>
+          </div>
+          <label v-if="!isLoading && categories.length>0" for="category">Catégories :
+            <select v-model="categoryQuery" name="category" id="category" @change="Search">
+              <option value=0>Toutes</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+            </select>
+          </label>
+          <label v-if="!isLoading && teams.length>0" for="team"> Equipes :
+            <select v-model="teamQuery" name="team" id="team" @change="Search">
+              <option value=0>Toutes</option>
+              <option v-for="team in teams" :key="team.id" :value="team.id" :style="{ color: team.color }">{{ team.name }}</option>
+            </select>
+          </label>
+          <label v-if="!isLoading && brands.length>0" for="brand">Marques :
+            <select v-model="brandQuery" name="brand" id="brand" @change="Search">
+              <option value=0>Toutes</option>
+              <option v-for="brand in brands" :key="brand.id" :value="brand.id">{{ brand.name }}</option>
+            </select>
+          </label>
+          <label v-if="!isLoading" for="variation">Variation :
+            <select v-model="variationQuery" name="variation" id="variation" @change="Search">
+              <option value=''>Toutes</option>
+              <option value="Domicile">Domicile</option>
+              <option value="Extérieur">Extérieur</option>
+              <option value="Alternative">Alternative</option>
+              <option value="Non applicable">Non applicable</option>
+            </select>
+          </label>
+          <label v-show="!isLoading" for="year">Année :
+            <input v-model="yearQuery" type="number" name="year" id="year" min="1891" :max="''+new Date().getFullYear()" @input="Search" />
+          </label>
+          <label v-show="!isLoading" for="size">Taille :
+            <input v-model="sizeQuery" type="text" name="size" id="size" @input="Search" />
+          </label>
+          <router-link to="/shop" @click="toggleSearch">
+            <button @click="Search" class="recherche-btn">Recherche</button>
+          </router-link>
         </div>
       </transition>
     </div>
@@ -68,13 +109,28 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import SpinnerLoader from './SpinnerLoader.vue';
 
 const router = useRouter();
 const isSearchOpen = ref(false);
-const searchQuery = ref('');
+const searchQuery = ref<string>('');
+
+const teamQuery = ref<number>(0);
+const brandQuery = ref<number>(0);
+const categoryQuery = ref<number>(0);
+const variationQuery = ref<string>('');
+const yearQuery = ref<number>(0);
+const sizeQuery = ref<string>('');
+const categories = ref();
+const teams = ref();
+const brands = ref();
+const isLoading = ref(true);
+
 const isMenuOpen = ref(false);
 const isMobile = ref(window.innerWidth < 992);
 const searchVisible = ref(window.innerWidth > 992);
+
+const emits = defineEmits(['emitSearch', 'emitCategory', 'emitTeam', 'emitBrand', 'emitVariation', 'emitYear', 'emitSize']);
 
 const user = ref<{ name: string; email: string } | null>(null);
 
@@ -87,11 +143,17 @@ const Menu = () => {
 };
 
 const Search = () => {
-  if (searchQuery.value) {
-    console.log(`Recherche pour : ${searchQuery.value}`);
+  if(searchQuery.value !== null && searchQuery.value !== undefined)emits('emitSearch', searchQuery.value);
+  if(categoryQuery.value)emits('emitCategory', categoryQuery.value);
+  if(teamQuery.value)emits('emitTeam', teamQuery.value);
+  if(brandQuery.value)emits('emitBrand', brandQuery.value);
+  if(variationQuery.value !== null && searchQuery.value !== undefined)emits('emitVariation', variationQuery.value);
+  if(yearQuery.value && yearQuery.value<=new Date().getFullYear() && yearQuery.value>=1891){
+    emits('emitYear', yearQuery.value.toString());
   } else {
-    console.log('Veuillez entrer une recherche');
-  }
+    emits('emitYear','');
+  };
+  if(sizeQuery.value !== null && searchQuery.value !== undefined)emits('emitSize', sizeQuery.value);
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -107,7 +169,7 @@ const logout = () => {
   router.push('/FormLogin');
 };
 
-onMounted(() => {
+onMounted(async () => {
   const userData = localStorage.getItem('user');
   if (userData) {
     user.value = JSON.parse(userData);
@@ -116,6 +178,41 @@ onMounted(() => {
     isMobile.value = window.innerWidth < 992;
     searchVisible.value = window.innerWidth > 992;
   });
+
+  try{
+      const resCategories = await fetch('http://localhost:3000/api/categories/',{
+          headers: {'Content-Type': 'application/json'}
+      });
+      if(!resCategories.ok){
+          isLoading.value = false;
+          return;
+      } else {
+          categories.value = await resCategories.json();
+      }
+      const resTeams = await fetch('http://localhost:3000/api/teams/',{
+          headers: {'Content-Type': 'application/json'}
+      });
+      if(!resTeams.ok){
+          isLoading.value = false;
+          return;
+      } else {
+          teams.value = await resTeams.json();
+      }
+      const resBrands = await fetch('http://localhost:3000/api/brands/',{
+          headers: {'Content-Type': 'application/json'}
+      });
+      if(!resBrands.ok){
+          isLoading.value = false;
+          return;
+      } else {
+          brands.value = await resBrands.json();
+      }
+    } catch(err) {
+        console.error(err);
+        isLoading.value = false;
+        return;
+    }
+    isLoading.value = false;
 });
 </script>
 
@@ -184,7 +281,6 @@ onMounted(() => {
     top: 0;
     right: 0;
     width: 100vw;
-    height: 25.5vh;
     background-color: #1D428A;
     color: #F5F5F5;
     padding: 10px;
@@ -201,12 +297,21 @@ onMounted(() => {
     right: 0;
     width: 40px;
   }
-  input {
+  .search-input {
     margin-bottom: 20px;
     margin-top: 20px;
     height: 30px;
     width: 70vw;
     font-weight: bold;
+  }
+  label:not(:first-of-type) {
+    display: flex;
+    justify-content: space-between;
+    width: 70vw;
+    margin-bottom: 20px;
+  }
+  label:not(:first-of-type)>select, label:not(:first-of-type)>input {
+    width: 50%;
   }
   button {
     height: 25px;
@@ -216,6 +321,11 @@ onMounted(() => {
     font-weight: bold;
     font-size: 14px;
     background-color: #F5F5F5;
+    margin-bottom: 20px;
+  }
+  button>a{
+    color: #0F0F0F;
+    text-decoration: none;
   }
   .slide-right-enter-active, .slide-right-leave-active {
     transition: transform 0.5s ease;
@@ -260,6 +370,10 @@ onMounted(() => {
   }
   .burger-dropdown .deco {
     color: #1D428A;
+  }
+  .loader {
+    width: 5px;
+    margin: auto;
   }
 @media screen and (min-width: 992px){
   .menu {
@@ -326,9 +440,12 @@ onMounted(() => {
     .search-container {
       display: none;
     }
-    input {
+    .search-input {
       width: 300px;
       margin: 0;
+    }
+    label:not(:first-of-type) {
+      width: 300px;
     }
     button {
       width: 30px;

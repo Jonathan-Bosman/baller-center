@@ -1,12 +1,58 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { RouterView } from 'vue-router'
 import FooterSide from './components/FooterSide.vue';
 import HeaderSide from './components/HeaderSide.vue';
+
+const querySearch = ref('');
+const categorySearch = ref(0);
+const teamSearch = ref(0);
+const brandSearch = ref(0);
+const variationSearch = ref('');
+const yearSearch = ref('');
+const sizeSearch = ref('');
+const receiveSearch = (query :string) =>{
+  querySearch.value = query;
+}
+const receiveCategory = (query :number) =>{
+  categorySearch.value = query;
+}
+const receiveTeam = (query :number) =>{
+  teamSearch.value = query;
+}
+const receiveBrand = (query :number) =>{
+  brandSearch.value = query;
+}
+const receiveVariation = (query :string) =>{
+  variationSearch.value = query;
+}
+const receiveYear = (query :string) =>{
+  yearSearch.value = query;
+}
+const receiveSize = (query :string) =>{
+  sizeSearch.value = query;
+}
 </script>
 
 <template>
-  <HeaderSide/>
-  <RouterView />
+  <HeaderSide
+    @emitSearch="receiveSearch"
+    @emitCategory="receiveCategory"
+    @emitTeam="receiveTeam"
+    @emitBrand="receiveBrand"
+    @emitVariation="receiveVariation"
+    @emitYear="receiveYear"
+    @emitSize="receiveSize"
+    />
+  <RouterView
+    :querySearch="querySearch"
+    :categorySearch="categorySearch"
+    :teamSearch="teamSearch"
+    :brandSearch="brandSearch"
+    :variationSearch="variationSearch"
+    :yearSearch="yearSearch"
+    :sizeSearch="sizeSearch"
+    />
   <FooterSide/>
 </template>
 
