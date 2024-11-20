@@ -16,7 +16,9 @@
             placeholder="Entrez votre recherche"
           />
         </label>
-         <button @click="Search" class="recherche-btn"><img src="../assets/Minisearch.svg" alt="" class="mini"></button>
+          <router-link to="/shop" @click="toggleSearch">
+            <button @click="Search" class="recherche-btn"><img src="../assets/Minisearch.svg" alt="" class="mini"></button>
+          </router-link>
       </div>
       <div v-else>
         <img src="../assets/Search.svg" alt="" @click="toggleSearch">
@@ -50,12 +52,29 @@
             </select>
           </label>
           <label v-if="!isLoading && brands.length>0" for="brand">Marques :
-          <select v-model="brandQuery" name="brand" id="brand" @change="Search">
-            <option value=0>Toutes</option>
-            <option v-for="brand in brands" :key="brand.id" :value="brand.id">{{ brand.name }}</option>
-          </select>
+            <select v-model="brandQuery" name="brand" id="brand" @change="Search">
+              <option value=0>Toutes</option>
+              <option v-for="brand in brands" :key="brand.id" :value="brand.id">{{ brand.name }}</option>
+            </select>
           </label>
-          <button @click="Search" class="recherche-btn">Recherche</button>
+          <label v-if="!isLoading" for="variation">Variation :
+            <select v-model="variationQuery" name="variation" id="variation" @change="Search">
+              <option value=''>Toutes</option>
+              <option value="Domicile">Domicile</option>
+              <option value="Extérieur">Extérieur</option>
+              <option value="Alternative">Alternative</option>
+              <option value="Non applicable">Non applicable</option>
+            </select>
+          </label>
+          <label v-show="!isLoading" for="year">Année :
+            <input v-model="yearQuery" type="number" name="year" id="year" min="1891" :max="''+new Date().getFullYear()" @input="Search" />
+          </label>
+          <label v-show="!isLoading" for="size">Taille :
+            <input v-model="sizeQuery" type="text" name="size" id="size" @input="Search" />
+          </label>
+          <router-link to="/shop" @click="toggleSearch">
+            <button @click="Search" class="recherche-btn">Recherche</button>
+          </router-link>
         </div>
       </transition>
     </div>
@@ -99,6 +118,9 @@ const searchQuery = ref<string>('');
 const teamQuery = ref<number>(0);
 const brandQuery = ref<number>(0);
 const categoryQuery = ref<number>(0);
+const variationQuery = ref<string>('');
+const yearQuery = ref<number>(0);
+const sizeQuery = ref<string>('');
 const categories = ref();
 const teams = ref();
 const brands = ref();
@@ -108,7 +130,7 @@ const isMenuOpen = ref(false);
 const isMobile = ref(window.innerWidth < 992);
 const searchVisible = ref(window.innerWidth > 992);
 
-const emits = defineEmits(['emitSearch', 'emitCategory', 'emitTeam', 'emitBrand']);
+const emits = defineEmits(['emitSearch', 'emitCategory', 'emitTeam', 'emitBrand', 'emitVariation', 'emitYear', 'emitSize']);
 
 const user = ref<{ name: string; email: string } | null>(null);
 
@@ -121,15 +143,17 @@ const Menu = () => {
 };
 
 const Search = () => {
-  if (searchQuery.value !== null || undefined) {
-    console.log(`Recherche pour : ${searchQuery.value}`);
-    emits('emitSearch', searchQuery.value);
-  } else {
-    console.log('Veuillez entrer une recherche');
-  }
+  if(searchQuery.value !== null && searchQuery.value !== undefined)emits('emitSearch', searchQuery.value);
   if(categoryQuery.value)emits('emitCategory', categoryQuery.value);
   if(teamQuery.value)emits('emitTeam', teamQuery.value);
   if(brandQuery.value)emits('emitBrand', brandQuery.value);
+  if(variationQuery.value !== null && searchQuery.value !== undefined)emits('emitVariation', variationQuery.value);
+  if(yearQuery.value && yearQuery.value<=new Date().getFullYear() && yearQuery.value>=1891){
+    emits('emitYear', yearQuery.value.toString());
+  } else {
+    emits('emitYear','');
+  };
+  if(sizeQuery.value !== null && searchQuery.value !== undefined)emits('emitSize', sizeQuery.value);
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -257,7 +281,6 @@ onMounted(async () => {
     top: 0;
     right: 0;
     width: 100vw;
-    height: 25.5vh;
     background-color: #1D428A;
     color: #F5F5F5;
     padding: 10px;
@@ -274,12 +297,21 @@ onMounted(async () => {
     right: 0;
     width: 40px;
   }
-  input {
+  .search-input {
     margin-bottom: 20px;
     margin-top: 20px;
     height: 30px;
     width: 70vw;
     font-weight: bold;
+  }
+  label:not(:first-of-type) {
+    display: flex;
+    justify-content: space-between;
+    width: 70vw;
+    margin-bottom: 20px;
+  }
+  label:not(:first-of-type)>select, label:not(:first-of-type)>input {
+    width: 50%;
   }
   button {
     height: 25px;
@@ -289,6 +321,11 @@ onMounted(async () => {
     font-weight: bold;
     font-size: 14px;
     background-color: #F5F5F5;
+    margin-bottom: 20px;
+  }
+  button>a{
+    color: #0F0F0F;
+    text-decoration: none;
   }
   .slide-right-enter-active, .slide-right-leave-active {
     transition: transform 0.5s ease;
@@ -403,9 +440,12 @@ onMounted(async () => {
     .search-container {
       display: none;
     }
-    input {
+    .search-input {
       width: 300px;
       margin: 0;
+    }
+    label:not(:first-of-type) {
+      width: 300px;
     }
     button {
       width: 30px;

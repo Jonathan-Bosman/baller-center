@@ -8,6 +8,9 @@ const querySearch = ref('');
 const categorySearch = ref(0);
 const teamSearch = ref(0);
 const brandSearch = ref(0);
+const variationSearch = ref('');
+const yearSearch = ref('');
+const sizeSearch = ref('');
 const receiveSearch = (query :string) =>{
   querySearch.value = query;
 }
@@ -20,6 +23,15 @@ const receiveTeam = (query :number) =>{
 const receiveBrand = (query :number) =>{
   brandSearch.value = query;
 }
+const receiveVariation = (query :string) =>{
+  variationSearch.value = query;
+}
+const receiveYear = (query :string) =>{
+  yearSearch.value = query;
+}
+const receiveSize = (query :string) =>{
+  sizeSearch.value = query;
+}
 </script>
 
 <template>
@@ -28,12 +40,18 @@ const receiveBrand = (query :number) =>{
     @emitCategory="receiveCategory"
     @emitTeam="receiveTeam"
     @emitBrand="receiveBrand"
+    @emitVariation="receiveVariation"
+    @emitYear="receiveYear"
+    @emitSize="receiveSize"
     />
   <RouterView
     :querySearch="querySearch"
     :categorySearch="categorySearch"
     :teamSearch="teamSearch"
     :brandSearch="brandSearch"
+    :variationSearch="variationSearch"
+    :yearSearch="yearSearch"
+    :sizeSearch="sizeSearch"
     />
   <FooterSide/>
 </template>

@@ -11,6 +11,7 @@
                 && teams.length>0
                 && brands.length>0"
             >
+            <p v-if="searchedProducts.length<1">Désolé, aucun produit ne correspond à votre recherche...</p>
             <ProductCard
                 class='card'
                 v-for="product in searchedProducts"
@@ -48,10 +49,14 @@ const props = defineProps({
     querySearch: String,
     categorySearch: Number,
     teamSearch: Number,
-    brandSearch: Number
+    brandSearch: Number,
+    variationSearch: String,
+    yearSearch: String,
+    sizeSearch: String
 });
 
 const formatSearch = (text :string) :string =>{
+    text = text.toString();
     text = text.replace(/[àáâäãÀÁÂÄÃ]/g,'a');
     text = text.replace(/[ìíîïÌÍÎÏ]/g,'i');
     text = text.replace(/[ùúûüÙÚÛÜ]/g,'u');
@@ -71,11 +76,17 @@ const query = ref();
 const category = ref();
 const team = ref();
 const brand = ref();
+const variation = ref();
+const year = ref();
+const size = ref();
 watchEffect( () => {
     query.value = props.querySearch?formatSearch(props.querySearch):'';
     category.value = props.categorySearch;
     team.value = props.teamSearch;
     brand.value = props.brandSearch;
+    variation.value = props.variationSearch?formatSearch(props.variationSearch):'';
+    year.value = props.yearSearch?formatSearch(props.yearSearch):'';
+    size.value = props.sizeSearch?formatSearch(props.sizeSearch):'';
 });
 const searchedProducts = computed(() => {
     if (!products.value) return [];
@@ -84,7 +95,10 @@ const searchedProducts = computed(() => {
         const matchesCategory = !category.value || category.value < 1 || product.category === category.value;
         const matchesTeam = !team.value || team.value < 1 || product.team === team.value;
         const matchesBrand = !brand.value || brand.value < 1 || product.brand === brand.value;
-        return matchesQuery && matchesCategory && matchesTeam && matchesBrand;
+        const matchesVariation = variation.value === '' || formatSearch(product.variation).match(variation.value);
+        const matchesYear = year.value === '' || formatSearch(product.creation_year).match(year.value);
+        const matchesSize = size.value === '' || formatSearch(product.size) === size.value;
+        return matchesQuery && matchesCategory && matchesTeam && matchesBrand && matchesVariation && matchesYear && matchesSize;
     });
 });
 
