@@ -16,6 +16,7 @@
                 class='card'
                 v-for="product in searchedProducts"
                 :key="product.id"
+                :id="product.id"
                 :nomProduit="product.name"
                 :categoryId="product.category"
                 :nomCategorie="categories[categories.findIndex(item => item.id === product.category)].name"
@@ -27,7 +28,7 @@
                 :variation="product.variation"
                 :anneeCreation="product.creation_year"
                 :prix="product.price"
-                :url="'http://localhost:3000/uploads/'+product.filepath"
+                :url="'http://localhost:3000/'+product.filepath"
                 />
         </div>
     </div>
@@ -168,7 +169,6 @@ onMounted(async () => {
 p{
     text-align: center;
     font-size: 17px;
-    font-family: var(--font-carter-one);
 }
 
 .loader{

@@ -1,14 +1,14 @@
 <template>
-    <div class="cardContainer">
+    <router-link :to="'/shop/'+props.id" class="cardContainer">
         <div class='imageWrapper'>
-            <img :src="imageSrc" @error="imageLoadError" :alt="props.nomProduit" />
+            <img :src="imageSrc" @error="imageLoadError" :alt="props.nomProduit || 'Image not available'" />
         </div> 
       <div class="description">
         <p>{{ props.nomProduit }}</p>
         <p>{{ props.nomCategorie }}</p>
         <p>{{ props.prix?`${((props.prix) + "").slice(0,((props.prix) + "").length-2)},${((props.prix) + "").slice(((props.prix) + "").length-2)}`:'0,00' }}€</p>
       </div>
-    </div>
+    </router-link>
 </template>
 
 <script setup lang="ts">
@@ -44,13 +44,14 @@ const imageLoadError = () => {
 .cardContainer {
     display: flex;
     flex-direction: column;
+    color: #0F0F0F;
+    text-decoration: none;
 }
 
 .imageWrapper{
     position: relative;
     overflow: hidden;
     aspect-ratio: 16/12;
-    border: solid 1px #0F0F0F;
     width: 100%;
 }
 
